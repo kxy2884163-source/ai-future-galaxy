@@ -161,6 +161,87 @@
       border-color: var(--accent);
       text-decoration: none;
     }
+
+    /* Comments */
+    .cmt-form {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+      margin-bottom: var(--space-4);
+    }
+    .cmt-form textarea {
+      width: 100%;
+      padding: var(--space-3);
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      color: var(--fg);
+      font-family: var(--font);
+      font-size: 14px;
+      resize: vertical;
+    }
+    .cmt-form textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: rgba(255,255,255,0.06);
+    }
+    .cmt-form-foot {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .cmt-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+    .cmt-item {
+      display: flex;
+      gap: var(--space-3);
+      padding: var(--space-3);
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+    }
+    .cmt-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      display: grid;
+      place-items: center;
+      font-size: 14px;
+      color: var(--bg-0);
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .cmt-body {
+      flex: 1;
+      min-width: 0;
+    }
+    .cmt-meta {
+      display: flex;
+      gap: var(--space-2);
+      font-size: 12px;
+      color: var(--fg-mute);
+      margin-bottom: var(--space-1);
+    }
+    .cmt-meta strong {
+      color: var(--fg);
+      font-weight: 600;
+    }
+    .cmt-content {
+      font-size: 14px;
+      line-height: 1.5;
+      word-break: break-word;
+      white-space: pre-wrap;
+    }
+    .cmt-empty {
+      text-align: center;
+      padding: var(--space-5);
+      color: var(--fg-dim);
+      font-size: 13px;
+    }
   </style>
 </head>
 <body>
@@ -203,6 +284,21 @@
           <li>✓ 持续更新 · 跟着 AI 行业演进</li>
           <li>✓ 社区共建 · 用户贡献 + 评分</li>
         </ul>
+      </div>
+
+      <!-- 评论 -->
+      <div class="content-block">
+        <h2>💬 评论 <span id="cmt-count" style="color: var(--fg-mute); font-weight: 500; font-size: 14px;">(0)</span></h2>
+        <form class="cmt-form" id="cmt-form">
+          <textarea id="cmt-input" placeholder="说点什么…（需要先登录）" rows="3" required></textarea>
+          <div class="cmt-form-foot">
+            <span id="cmt-hint" style="font-size: 12px; color: var(--fg-dim);">匿名模式 · 阶段 2 接真实身份</span>
+            <button class="btn btn-primary" type="submit" style="padding: 6px 16px; font-size: 13px;">发表</button>
+          </div>
+        </form>
+        <div class="cmt-list" id="cmt-list">
+          <div class="cmt-empty">暂无评论 · 来抢沙发？</div>
+        </div>
       </div>
 
       <div class="related">
@@ -297,6 +393,69 @@
         </a>
       `).join('');
       document.getElementById('related').innerHTML = relHtml || '<p style="color: var(--fg-mute)">暂无相关推荐</p>';
+
+      // § 评论系统（localStorage 持久化）
+      const LS_COMMENTS = 'cosmic.comments';
+      const resKey = 'res_' + id;
+
+      function getComments() {
+        try { return JSON.parse(localStorage.getItem(LS_COMMENTS) || '{}'); }
+        catch { return {}; }
+      }
+      function saveComments(map) {
+        localStorage.setItem(LS_COMMENTS, JSON.stringify(map));
+      }
+      function getThisRes() {
+        return (getComments()[resKey] || []);
+      }
+
+      function renderComments() {
+        const list = getThisRes();
+        const ul = document.getElementById('cmt-list');
+        document.getElementById('cmt-count').textContent = `(${list.length})`;
+        if (list.length === 0) {
+          ul.innerHTML = '<div class="cmt-empty">暂无评论 · 来抢沙发？</div>';
+          return;
+        }
+        ul.innerHTML = list.map(c => `
+          <div class="cmt-item">
+            <div class="cmt-avatar">${(c.author || '匿').slice(0, 1).toUpperCase()}</div>
+            <div class="cmt-body">
+              <div class="cmt-meta">
+                <strong>${escape(c.author || '匿名')}</strong>
+                <span>·</span>
+                <span>${formatTime(c.ts)}</span>
+              </div>
+              <div class="cmt-content">${escape(c.content)}</div>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      // 评论提交
+      document.getElementById('cmt-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const input = document.getElementById('cmt-input');
+        const content = input.value.trim();
+        if (!content) return;
+
+        const user = getCurrentUser();
+        const author = user ? user.username : `访客${Math.floor(Math.random() * 9000 + 1000)}`;
+
+        const map = getComments();
+        if (!map[resKey]) map[resKey] = [];
+        map[resKey].unshift({
+          id: 'c_' + Date.now().toString(36),
+          author,
+          content,
+          ts: new Date().toISOString(),
+        });
+        saveComments(map);
+        input.value = '';
+        renderComments();
+      });
+
+      renderComments();
     });
   </script>
 </body>

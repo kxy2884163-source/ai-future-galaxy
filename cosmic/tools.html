@@ -349,6 +349,55 @@
   <script type="module" src="app.js"></script>
   <script type="module" src="cosmic-scene.js"></script>
   <script type="module">
+    // § 收藏按钮（localStorage 持久化）
+    const LS_TOOL_FAVS = 'cosmic.toolFavs';
+
+    function readTools() {
+      try { return JSON.parse(localStorage.getItem(LS_TOOL_FAVS) || '[]'); }
+      catch { return []; }
+    }
+    function writeTools(arr) {
+      localStorage.setItem(LS_TOOL_FAVS, JSON.stringify(arr));
+    }
+    function setupFavBtn(card, toolId, toolName) {
+      const favs = readTools();
+      const isActive = favs.includes(toolId);
+      const btn = document.createElement('button');
+      btn.className = 'fav-btn' + (isActive ? ' is-active' : '');
+      btn.type = 'button';
+      btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      btn.setAttribute('aria-label', '收藏 ' + toolName);
+      btn.textContent = isActive ? '★' : '☆';
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const cur = readTools();
+        const idx = cur.indexOf(toolId);
+        if (idx >= 0) {
+          cur.splice(idx, 1);
+          btn.classList.remove('is-active');
+          btn.setAttribute('aria-pressed', 'false');
+          btn.textContent = '☆';
+        } else {
+          cur.push(toolId);
+          btn.classList.add('is-active');
+          btn.setAttribute('aria-pressed', 'true');
+          btn.textContent = '★';
+        }
+        writeTools(cur);
+      });
+      card.style.position = 'relative';
+      card.appendChild(btn);
+    }
+
+    // 现有卡片注入收藏按钮
+    document.querySelectorAll('.tool-card').forEach(card => {
+      const nameEl = card.querySelector('.tool-name');
+      if (!nameEl) return;
+      const toolId = nameEl.textContent.trim();
+      setupFavBtn(card, toolId, nameEl.textContent);
+    });
+
     // § Filter pills 交互
     const pills = document.querySelectorAll('.filter-pill');
     const sections = document.querySelectorAll('.cat-section');

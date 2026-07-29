@@ -152,6 +152,41 @@
       border-top: 1px solid var(--glass-border);
     }
 
+    /* Action buttons on cards */
+    .res-actions {
+      display: flex;
+      gap: var(--space-2);
+      padding: var(--space-3) var(--space-4) 0;
+    }
+    .res-action {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 6px 10px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-sm);
+      color: var(--fg-mute);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .res-action:hover {
+      background: var(--glass-strong);
+      color: var(--accent);
+    }
+    .res-action.is-active {
+      background: rgba(125,249,255,0.15);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .res-action .count {
+      font-variant-numeric: tabular-nums;
+      font-weight: 600;
+    }
+
     /* Empty state */
     .empty {
       grid-column: 1 / -1;
@@ -279,21 +314,57 @@
             <p>没找到匹配的资源</p>
           </div>`;
       } else {
-        grid.innerHTML = slice.map(r => `
-          <a class="res-card" href="./resource-detail.html?id=${encodeURIComponent(r.id)}">
-            <div class="res-cover" aria-hidden="true">${r.icon}</div>
-            <div class="res-body">
-              <span class="res-type">${escapeType(r.type)}</span>
-              <h3 class="res-title">${escape(r.title)}</h3>
-              <p class="res-desc">${escape(r.desc)}</p>
-              <div class="res-meta">
-                <span>★ ${r.fav.toLocaleString()}</span>
-                <span>⬇ ${r.dl.toLocaleString()}</span>
+        grid.innerHTML = slice.map(r => {
+          const favKey = 'cosmic.favs';
+          const likeKey = 'cosmic.likes';
+          const favs = readJSON(favKey, []);
+          const likes = readJSON(likeKey, {});
+          const isFav = favs.includes(r.id);
+          const likeCount = (likes[r.id] || 0) + r.fav;
+          return `
+          <div class="res-card-wrap">
+            <a class="res-card" href="./resource-detail.html?id=${encodeURIComponent(r.id)}">
+              <div class="res-cover" aria-hidden="true">${r.icon}</div>
+              <div class="res-body">
+                <span class="res-type">${escapeType(r.type)}</span>
+                <h3 class="res-title">${escape(r.title)}</h3>
+                <p class="res-desc">${escape(r.desc)}</p>
+                <div class="res-meta">
+                  <span>★ ${r.fav.toLocaleString()}</span>
+                  <span>⬇ ${r.dl.toLocaleString()}</span>
+                </div>
               </div>
+            </a>
+            <div class="res-actions">
+              <button class="res-action ${isFav ? 'is-active' : ''}" data-action="fav" data-id="${r.id}" aria-pressed="${isFav}">
+                <span aria-hidden="true">${isFav ? '★' : '☆'}</span>
+                <span>收藏</span>
+                <span class="count">${isFav ? '已收藏' : ''}</span>
+              </button>
+              <button class="res-action" data-action="like" data-id="${r.id}">
+                <span aria-hidden="true">▲</span>
+                <span>点赞</span>
+                <span class="count">${likeCount.toLocaleString()}</span>
+              </button>
             </div>
-          </a>
-        `).join('');
+          </div>
+        `}).join('');
       }
+
+      // Bind action buttons
+      grid.querySelectorAll('.res-action').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const action = btn.dataset.action;
+          const rid = btn.dataset.id;
+          if (action === 'fav') {
+            toggleFav(rid, btn);
+          } else if (action === 'like') {
+            toggleLike(rid, btn);
+          }
+        });
+      });
 
       // pagination
       const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -312,6 +383,42 @@
     }
     function escapeType(t) {
       return ({ prompt:'Prompt', model:'Model', tool:'Tool', dataset:'Dataset', inspiration:'Inspiration' })[t] || t;
+    }
+
+    // § 收藏 / 点赞 持久化
+    function readJSON(key, fallback = null) {
+      try { return JSON.parse(localStorage.getItem(key) || 'null') ?? fallback; }
+      catch { return fallback; }
+    }
+    function writeJSON(key, val) {
+      localStorage.setItem(key, JSON.stringify(val));
+    }
+    function toggleFav(id, btn) {
+      const favs = readJSON('cosmic.favs', []);
+      const idx = favs.indexOf(id);
+      if (idx >= 0) {
+        favs.splice(idx, 1);
+        btn.classList.remove('is-active');
+        btn.setAttribute('aria-pressed', 'false');
+        btn.querySelector('.count').textContent = '';
+        btn.querySelector('[aria-hidden]').textContent = '☆';
+      } else {
+        favs.push(id);
+        btn.classList.add('is-active');
+        btn.setAttribute('aria-pressed', 'true');
+        btn.querySelector('.count').textContent = '已收藏';
+        btn.querySelector('[aria-hidden]').textContent = '★';
+      }
+      writeJSON('cosmic.favs', favs);
+    }
+    function toggleLike(id, btn) {
+      const likes = readJSON('cosmic.likes', {});
+      likes[id] = (likes[id] || 0) + 1;
+      writeJSON('cosmic.likes', likes);
+      const baseFav = (RESOURCES.find(r => r.id === id) || { fav: 0 }).fav;
+      btn.querySelector('.count').textContent = (baseFav + likes[id]).toLocaleString();
+      btn.style.transform = 'scale(1.1)';
+      setTimeout(() => { btn.style.transform = ''; }, 200);
     }
 
     // § Bind
