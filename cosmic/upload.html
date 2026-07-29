@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <base href="/cosmic/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI 在线使用 · AI 未来星域社区</title>
+  <meta name="description" content="AI 在线使用 · 打开就能用 · 免安装免部署 · 多模型支持">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .ai-wrap {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: var(--space-6) var(--space-5) var(--space-9);
+    }
+    .page-head {
+      text-align: center;
+      margin-bottom: var(--space-6);
+    }
+    .page-head h1 {
+      font-size: clamp(28px, 5vw, 44px);
+      font-weight: 800;
+      margin-bottom: var(--space-3);
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .page-head p {
+      color: var(--fg-mute);
+      font-size: 15px;
+    }
+
+    .ai-card {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      -webkit-backdrop-filter: blur(var(--blur));
+      backdrop-filter: blur(var(--blur));
+      padding: var(--space-6);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-5);
+    }
+
+    /* Template selector */
+    .template-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: var(--space-3);
+    }
+    .template-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-2);
+      padding: var(--space-4);
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      color: var(--fg-mute);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .template-btn:hover {
+      background: var(--glass-strong);
+      color: var(--fg);
+      transform: translateY(-2px);
+    }
+    .template-btn[aria-pressed="true"] {
+      background: linear-gradient(135deg, rgba(125,249,255,0.15), rgba(179,136,255,0.15));
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .template-btn .icon {
+      font-size: 28px;
+    }
+    .template-btn .label {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    /* Form */
+    .form-row {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+    .form-row label {
+      font-size: 13px;
+      color: var(--fg-mute);
+      font-weight: 500;
+    }
+    .form-row textarea,
+    .form-row select,
+    .form-row input {
+      width: 100%;
+      padding: var(--space-3);
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      color: var(--fg);
+      font-size: 14px;
+      transition: border-color 0.2s ease;
+    }
+    .form-row textarea {
+      min-height: 120px;
+      resize: vertical;
+      font-family: var(--font);
+    }
+    .form-row textarea:focus,
+    .form-row select:focus,
+    .form-row input:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: rgba(255,255,255,0.06);
+    }
+
+    /* Result */
+    .result-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      padding: var(--space-5);
+      min-height: 120px;
+      color: var(--fg);
+      font-size: 14px;
+      line-height: 1.7;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .result-card.loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-3);
+      color: var(--fg-mute);
+    }
+    .result-card .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid var(--glass-border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* History */
+    .history {
+      margin-top: var(--space-5);
+    }
+    .history h3 {
+      font-size: 14px;
+      color: var(--fg-mute);
+      margin-bottom: var(--space-3);
+    }
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+    .history-item {
+      display: flex;
+      gap: var(--space-3);
+      padding: var(--space-3);
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      font-size: 13px;
+    }
+    .history-item .ts {
+      color: var(--fg-dim);
+      flex-shrink: 0;
+      font-variant-numeric: tabular-nums;
+    }
+    .history-item .q {
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .history-item .a {
+      color: var(--fg-mute);
+    }
+
+    .empty {
+      text-align: center;
+      color: var(--fg-dim);
+      padding: var(--space-5);
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="canvas-bg" aria-hidden="true">
+    <canvas id="cosmic-canvas"></canvas>
+  </div>
+
+  <header class="site-header">
+    <a href="./index.html" class="brand" aria-label="AI 未来星域社区">
+      <span class="brand-mark">✦</span>
+      <span class="brand-text">AI 未来星域社区</span>
+    </a>
+    <nav class="site-nav" aria-label="主导航">
+      <a href="./index.html">社区</a>
+      <a href="./resource.html">知识</a>
+      <a href="./tools.html">工具</a>
+      <button id="nav-auth" class="btn btn-ghost" type="button">登录</button>
+    </nav>
+  </header>
+
+  <main class="ai-wrap">
+    <header class="page-head">
+      <h1>🤖 AI 在线使用</h1>
+      <p>打开就能用 · 免安装免部署 · 多模型支持 · 历史记录本地保存</p>
+    </header>
+
+    <div class="ai-card">
+      <!-- 任务模板 -->
+      <div class="form-row">
+        <label>① 选任务模板</label>
+        <div class="template-grid" role="radiogroup" aria-label="任务模板">
+          <button class="template-btn" type="button" data-tpl="write" aria-pressed="true">
+            <span class="icon">📝</span><span class="label">写作</span>
+          </button>
+          <button class="template-btn" type="button" data-tpl="translate" aria-pressed="false">
+            <span class="icon">🌐</span><span class="label">翻译</span>
+          </button>
+          <button class="template-btn" type="button" data-tpl="summary" aria-pressed="false">
+            <span class="icon">📋</span><span class="label">总结</span>
+          </button>
+          <button class="template-btn" type="button" data-tpl="code" aria-pressed="false">
+            <span class="icon">💻</span><span class="label">代码</span>
+          </button>
+          <button class="template-btn" type="button" data-tpl="brainstorm" aria-pressed="false">
+            <span class="icon">💡</span><span class="label">头脑风暴</span>
+          </button>
+          <button class="template-btn" type="button" data-tpl="custom" aria-pressed="false">
+            <span class="icon">✦</span><span class="label">自定义</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 模型选择 -->
+      <div class="form-row">
+        <label for="model-select">② 选模型</label>
+        <select id="model-select">
+          <option value="gpt-4o">GPT-4o · 通用强</option>
+          <option value="claude-sonnet-4">Claude Sonnet 4 · 写作强</option>
+          <option value="gemini-1.5-pro">Gemini 1.5 Pro · 多模态</option>
+          <option value="deepseek-v3">DeepSeek V3 · 中文强</option>
+        </select>
+      </div>
+
+      <!-- 输入 -->
+      <div class="form-row">
+        <label for="prompt-input">③ 输入需求</label>
+        <textarea id="prompt-input" placeholder="例如：帮我写一段关于 AI 变现的产品介绍，100 字以内，面向技术博主。"></textarea>
+      </div>
+
+      <button class="btn btn-primary" id="submit-btn" type="button" style="align-self: flex-start;">
+        ✦ 生成
+      </button>
+
+      <!-- 结果 -->
+      <div class="form-row">
+        <label>④ 输出</label>
+        <div class="result-card" id="result">
+          <div class="empty">点击「✦ 生成」按钮开始 · 这是 mock 结果（阶段 2 接真实 API）</div>
+        </div>
+      </div>
+
+      <!-- 历史 -->
+      <div class="history">
+        <h3>最近调用（localStorage 保存 · 最多 10 条）</h3>
+        <div class="history-list" id="history-list">
+          <div class="empty">暂无历史</div>
+        </div>
+      </div>
+    </div>
+
+    <p style="text-align: center; color: var(--fg-dim); margin-top: var(--space-5); font-size: 12px;">
+      ⚠️ MVP 阶段为 mock 输出 · 阶段 2 接入 Supabase Edge Functions 调用真实模型
+    </p>
+  </main>
+
+  <footer class="site-footer">
+    <p>✦ AI 未来星域社区 · AI 在线模块 · v1.0 MVP</p>
+  </footer>
+
+  <script type="module" src="app.js"></script>
+  <script type="module" src="cosmic-scene.js"></script>
+  <script type="module">
+    // § Mock responses
+    const MOCK = {
+      write:       '（mock）这是一段示例写作输出。在 MVP 阶段，我们使用本地 mock 数据展示完整交互流程；阶段 2 将接入 Supabase Edge Functions 调用真实模型。AI 未来星域社区的目标是让 AI 学习变得不再孤独。',
+      translate:   '（mock）Translation result: "Welcome to AI Future Galaxy — a one-stop growth universe for AI enthusiasts."',
+      summary:     '（mock）摘要：本文核心观点是 AI 工具应聚焦用户痛点 · 提供一站式入口 · 降低使用门槛。',
+      code:        '（mock）// 代码示例\nfunction greet(name) {\n  return `Hello, ${name}!`;\n}\nconsole.log(greet("AI 未来星域社区"));',
+      brainstorm:  '（mock）3 个创意点子：\n1. AI 工具评测社区 + UGC 评分系统\n2. AI 短剧创作工作流模板\n3. AI 副业变现路径库',
+      custom:      '（mock）已收到你的自定义请求。阶段 2 将根据所选模型返回真实结果。',
+    };
+
+    const TEMPLATES = {
+      write:       '写作',
+      translate:   '翻译',
+      summary:     '总结',
+      code:        '代码',
+      brainstorm:  '头脑风暴',
+      custom:      '自定义',
+    };
+
+    // § State
+    const LS_HISTORY = 'cosmic.aiHistory';
+    let currentTpl = 'write';
+    function getHistory() {
+      try { return JSON.parse(localStorage.getItem(LS_HISTORY) || '[]'); }
+      catch { return []; }
+    }
+    function setHistory(arr) {
+      localStorage.setItem(LS_HISTORY, JSON.stringify(arr.slice(0, 10)));
+    }
+
+    // § Bind
+    document.addEventListener('DOMContentLoaded', () => {
+      // Template buttons
+      document.querySelectorAll('.template-btn').forEach(b => {
+        b.addEventListener('click', () => {
+          currentTpl = b.dataset.tpl;
+          document.querySelectorAll('.template-btn').forEach(q =>
+            q.setAttribute('aria-pressed', q === b ? 'true' : 'false'));
+        });
+      });
+
+      // Submit
+      document.getElementById('submit-btn').addEventListener('click', () => {
+        const prompt = document.getElementById('prompt-input').value.trim();
+        const model = document.getElementById('model-select').value;
+        if (!prompt) {
+          showInline('请输入需求', 'warn');
+          return;
+        }
+        runMock(prompt, model);
+      });
+
+      // Render history
+      renderHistory();
+    });
+
+    function runMock(prompt, model) {
+      const result = document.getElementById('result');
+      result.className = 'result-card loading';
+      result.innerHTML = '<div class="spinner" aria-hidden="true"></div><span>生成中（mock）…</span>';
+
+      // Simulate API latency
+      setTimeout(() => {
+        const answer = MOCK[currentTpl] || MOCK.custom;
+        result.className = 'result-card';
+        result.textContent = answer;
+        // Save to history
+        const h = getHistory();
+        h.unshift({
+          ts: new Date().toISOString(),
+          tpl: currentTpl,
+          tplLabel: TEMPLATES[currentTpl] || currentTpl,
+          model,
+          prompt,
+          answer,
+        });
+        setHistory(h);
+        renderHistory();
+      }, 800);
+    }
+
+    function renderHistory() {
+      const list = document.getElementById('history-list');
+      const items = getHistory();
+      if (items.length === 0) {
+        list.innerHTML = '<div class="empty">暂无历史</div>';
+        return;
+      }
+      list.innerHTML = items.map(it => `
+        <div class="history-item">
+          <span class="ts">${formatTime(it.ts)}</span>
+          <div style="flex:1; min-width:0;">
+            <div><span class="q">[${escape(it.tplLabel)}]</span> ${escape(it.prompt.slice(0, 60))}${it.prompt.length > 60 ? '…' : ''}</div>
+            <div class="a">${escape(it.answer.slice(0, 80))}${it.answer.length > 80 ? '…' : ''}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function formatTime(iso) {
+      try {
+        const d = new Date(iso);
+        return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+      } catch { return '--:--'; }
+    }
+
+    function escape(s) {
+      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    function showInline(text, type) {
+      const result = document.getElementById('result');
+      result.className = 'result-card';
+      result.innerHTML = `<div style="color: var(--${type === 'warn' ? 'warn' : 'fg-dim'}); text-align:center;">${text}</div>`;
+    }
+  </script>
+</body>
+</html>

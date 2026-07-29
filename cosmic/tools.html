@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <base href="/cosmic/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>插件工具 · AI 未来星域社区</title>
+  <meta name="description" content="常用 AI 插件工具 · 收敛碎片工具到一个入口 · 一键直跳">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* § Tools 页面容器 */
+    .tools-wrap {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: var(--space-7) var(--space-5) var(--space-9);
+    }
+
+    /* § Page header */
+    .page-head {
+      text-align: center;
+      margin-bottom: var(--space-7);
+    }
+    .page-head h1 {
+      font-size: clamp(32px, 5vw, 48px);
+      font-weight: 800;
+      margin-bottom: var(--space-3);
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .page-head p {
+      color: var(--fg-mute);
+      font-size: 16px;
+    }
+
+    /* § Filter pills */
+    .tool-filter {
+      display: flex;
+      gap: var(--space-2);
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: var(--space-6);
+      padding: var(--space-3);
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-xl);
+      -webkit-backdrop-filter: blur(var(--blur));
+      backdrop-filter: blur(var(--blur));
+    }
+    .filter-pill {
+      padding: 6px 16px;
+      border-radius: var(--radius);
+      background: transparent;
+      border: 1px solid var(--glass-border);
+      color: var(--fg-mute);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    }
+    .filter-pill:hover {
+      background: var(--glass-strong);
+      color: var(--fg);
+    }
+    .filter-pill[aria-pressed="true"] {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: var(--bg-0);
+      border-color: transparent;
+      font-weight: 600;
+    }
+
+    /* § Tool grid */
+    .tool-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: var(--space-4);
+    }
+    .tool-card {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+      padding: var(--space-5);
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      -webkit-backdrop-filter: blur(var(--blur));
+      backdrop-filter: blur(var(--blur));
+      text-decoration: none;
+      color: var(--fg);
+      transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+      position: relative;
+    }
+    .tool-card:hover {
+      transform: translateY(-3px);
+      border-color: var(--accent);
+      box-shadow: 0 12px 32px rgba(125, 249, 255, 0.15);
+      text-decoration: none;
+    }
+    .tool-icon {
+      font-size: 36px;
+      filter: drop-shadow(0 0 6px rgba(125, 249, 255, 0.3));
+    }
+    .tool-name {
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .tool-desc {
+      color: var(--fg-mute);
+      font-size: 13px;
+      flex: 1;
+    }
+    .tool-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: var(--fg-dim);
+      padding-top: var(--space-2);
+      border-top: 1px solid var(--glass-border);
+    }
+    .tool-cat {
+      padding: 2px 8px;
+      background: var(--glass-strong);
+      border-radius: var(--radius-sm);
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    /* § Category section */
+    .cat-section {
+      margin-bottom: var(--space-7);
+    }
+    .cat-section > h2 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: var(--space-4);
+      color: var(--fg-mute);
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+    .cat-section > h2::before {
+      content: '';
+      display: inline-block;
+      width: 4px;
+      height: 18px;
+      background: linear-gradient(180deg, var(--accent), var(--accent-2));
+      border-radius: 2px;
+    }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="canvas-bg" aria-hidden="true">
+    <canvas id="cosmic-canvas"></canvas>
+  </div>
+
+  <header class="site-header">
+    <a href="./index.html" class="brand" aria-label="AI 未来星域社区">
+      <span class="brand-mark">✦</span>
+      <span class="brand-text">AI 未来星域社区</span>
+    </a>
+    <nav class="site-nav" aria-label="主导航">
+      <a href="./index.html">社区</a>
+      <a href="./resource.html">知识</a>
+      <a href="./tools.html" aria-current="page">工具</a>
+      <button id="nav-auth" class="btn btn-ghost" type="button">登录</button>
+    </nav>
+  </header>
+
+  <main class="tools-wrap">
+    <header class="page-head">
+      <h1>🛠️ 常用插件工具</h1>
+      <p>收敛碎片 AI 工具到一个入口 · 一键直跳 · 收藏常用</p>
+    </header>
+
+    <!-- Filter pills -->
+    <div class="tool-filter" role="tablist" aria-label="工具分类筛选">
+      <button class="filter-pill" type="button" data-cat="all" aria-pressed="true">全部</button>
+      <button class="filter-pill" type="button" data-cat="writing" aria-pressed="false">📝 写作</button>
+      <button class="filter-pill" type="button" data-cat="image" aria-pressed="false">🎨 图像</button>
+      <button class="filter-pill" type="button" data-cat="code" aria-pressed="false">💻 编程</button>
+      <button class="filter-pill" type="button" data-cat="video" aria-pressed="false">🎬 视频</button>
+      <button class="filter-pill" type="button" data-cat="search" aria-pressed="false">🔍 搜索</button>
+      <button class="filter-pill" type="button" data-cat="chat" aria-pressed="false">💬 对话</button>
+    </div>
+
+    <!-- 写作类 -->
+    <section class="cat-section" data-cat="writing">
+      <h2>写作类</h2>
+      <div class="tool-grid">
+        <a class="tool-card" href="https://www.notion.so/product/ai" target="_blank" rel="noopener">
+          <div class="tool-icon" aria-hidden="true">📝</div>
+          <h3 class="tool-name">Notion AI</h3>
+          <p class="tool-desc">一体化 AI 写作助手，集成在 Notion 内</p>
+          <div class="tool-meta"><span class="tool-cat">写作</span><span>★ 4.8</span></div>
+        </a>
+        <a class="tool-card" href="https://metaso.cn/" target="_blank" rel="noopener">
+          <div class="tool-icon" aria-hidden="true">🪶</div>
+          <h3 class="tool-name">秘塔写作猫</h3>
+          <p class="tool-desc">中文 AI 写作 · 改写润色 · 全文生成</p>
+          <div class="tool-meta"><span class="tool-cat">写作</span><span>★ 4.6</span></div>
+        </a>
+        <a class="tool-card" href="https://www.copy.ai/" target="_blank" rel="noopener">
+          <div class="tool-icon" aria-hidden="true">✍️</div>
+          <h3 class="tool-name">Copy.ai</h3>
+          <p class="tool-desc">营销文案 · 邮件 · 社交媒体</p>
+          <div class="tool-meta"><span class="tool-cat">写作</span><span>★ 4.5</span></div>
+        </a>
+      </div>
+    </section>
+
+    <!-- 图像类 -->
+    <section class="cat-section" data-cat="image">
+      <h2>图像类</h2>
+      <div class="tool-grid">
+        <a class="tool-card" href="https://www.midjourney.com/" target="_blank" rel="noopener">
+          <div class="tool-icon" aria-hidden="true">🎨</div>
+          <h3 class="tool-name">Midjourney</h3>
+          <p class="tool-desc">顶级 AI 绘画 · 艺术风格最强</p>
+          <div class="tool-meta"><span class="tool-cat">图像</span><span>★ 4.9</span></div>
+        </a>
+        <a class="tool-card" href="https://stability.ai/" target="_blank" rel="noopener">
+          <div class="tool-icon" aria-hidden="true">🌀</div>
+          <h3 class="tool-name">Stable Diffusion</h3>
+          <p class="tool-desc">开源 · 本地部署 · 完全免费</p>
+          <div class="tool-meta"><span class="tool-cat">图像</span><span>★ 4.7</span></div>
+        </a>
+        <a class="tool-card" href="https://openai.com/dall-e-3" target="_blank" rel="noopener">
+          <div class="tool-icon" aria-hidden="true">🖼️</div>
+          <h3 class="tool-name">DALL·E 3</h3>
+          <p class="tool-desc">OpenAI 图像 · 提示词理解最准</p>
+          <div class="tool-meta"><span class="tool-cat">图像</span><span>★ 4.6</span></div>
+        </a>
+      </div>
+    </section>
+
+    <!-- 编程类 -->
+    <section class="cat-section" data-cat="code">
+      <h2>编程类</h2>
+      <div class="tool-grid">
+        <a class="tool-card" href="https://www.cursor.com/" target="_blank" rel="noopener">
+          <div class="tool-icon" aria-hidden="true">⌨️</div>
+          <h3 class="tool-name">Cursor</h3>
+          <p class="tool-desc">AI-first IDE · 写代码效率 ×10</p>
+          <div class="tool-meta"><span class="tool-cat">编程</span><span>★ 4.9</span></div>
+        </a>
+        <a class="tool-card" href="https://github.com/features/copilot" target="_blank" rel="noopener">
+          <div class="tool-icon" aria-hidden="true">🤖</div>
+          <h3 class="tool-name">GitHub Copilot</h3>
+          <p class="tool-desc">行内补全 · 全 IDE 支持</p>
+          <div class="tool-meta"><span class="tool-cat">编程</span><span>★ 4.7</span></div>
+        </a>
+        <a class="tool-card" href="https://www.continue.dev/" target="_blank" rel="noopener">
+          <div class="tool-icon" aria-hidden="true">↪️</div>
+          <h3 class="tool-name">Continue</h3>
+          <p class="tool-desc">开源 AI 编程助手 · 自托管</p>
+          <div class="tool-meta"><span class="tool-cat">编程</span><span>★ 4.5</span></div>
+        </a>
+      </div>
+    </section>
+
+    <!-- 视频类 -->
+    <section class="cat-section" data-cat="video">
+      <h2>视频类</h2>
+      <div class="tool-grid">
+        <a class="tool-card" href="https://runwayml.com/" target="_blank" rel="noopener">
+          <div class="tool-icon" aria-hidden="true">🎬</div>
+          <h3 class="tool-name">Runway</h3>
+          <p class="tool-desc">AI 视频生成 · Gen-3 Alpha</p>
+          <div class="tool-meta"><span class="tool-cat">视频</span><span>★ 4.7</span></div>
+        </a>
+        <a class="tool-card" href="https://pika.art/" target="_blank" rel="noopener">
+          <div class="tool-icon" aria-hidden="true">⚡</div>
+          <h3 class="tool-name">Pika</h3>
+          <p class="tool-desc">文生视频 · 创意短片</p>
+          <div class="tool-meta"><span class="tool-cat">视频</span><span>★ 4.5</span></div>
+        </a>
+        <a class="tool-card" href="https://lumalabs.ai/" target="_blank" rel="noopener">
+          <div class="tool-icon" aria-hidden="true">🌌</div>
+          <h3 class="tool-name">Luma Dream Machine</h3>
+          <p class="tool-desc">高质量 AI 视频 · 真实感强</p>
+          <div class="tool-meta"><span class="tool-cat">视频</span><span>★ 4.4</span></div>
+        </a>
+      </div>
+    </section>
+
+    <!-- 搜索类 -->
+    <section class="cat-section" data-cat="search">
+      <h2>搜索类</h2>
+      <div class="tool-grid">
+        <a class="tool-card" href="https://www.perplexity.ai/" target="_blank" rel="noopener">
+          <div class="tool-icon" aria-hidden="true">🔍</div>
+          <h3 class="tool-name">Perplexity</h3>
+          <p class="tool-desc">AI 搜索引擎 · 引用来源</p>
+          <div class="tool-meta"><span class="tool-cat">搜索</span><span>★ 4.8</span></div>
+        </a>
+        <a class="tool-card" href="https://www.phind.com/" target="_blank" rel="noopener">
+          <div class="tool-icon" aria-hidden="true">⚙️</div>
+          <h3 class="tool-name">Phind</h3>
+          <p class="tool-desc">面向开发者的 AI 搜索</p>
+          <div class="tool-meta"><span class="tool-cat">搜索</span><span>★ 4.5</span></div>
+        </a>
+        <a class="tool-card" href="https://you.com/" target="_blank" rel="noopener">
+          <div class="tool-icon" aria-hidden="true">🌐</div>
+          <h3 class="tool-name">You.com</h3>
+          <p class="tool-desc">AI 搜索 + 应用生态</p>
+          <div class="tool-meta"><span class="tool-cat">搜索</span><span>★ 4.3</span></div>
+        </a>
+      </div>
+    </section>
+
+    <!-- 对话类 -->
+    <section class="cat-section" data-cat="chat">
+      <h2>对话类</h2>
+      <div class="tool-grid">
+        <a class="tool-card" href="https://chatgpt.com/" target="_blank" rel="noopener">
+          <div class="tool-icon" aria-hidden="true">💬</div>
+          <h3 class="tool-name">ChatGPT</h3>
+          <p class="tool-desc">OpenAI · GPT-4o · 最普及</p>
+          <div class="tool-meta"><span class="tool-cat">对话</span><span>★ 4.8</span></div>
+        </a>
+        <a class="tool-card" href="https://claude.ai/" target="_blank" rel="noopener">
+          <div class="tool-icon" aria-hidden="true">✦</div>
+          <h3 class="tool-name">Claude</h3>
+          <p class="tool-desc">Anthropic · 长文档 · 写作强</p>
+          <div class="tool-meta"><span class="tool-cat">对话</span><span>★ 4.8</span></div>
+        </a>
+        <a class="tool-card" href="https://gemini.google.com/" target="_blank" rel="noopener">
+          <div class="tool-icon" aria-hidden="true">💎</div>
+          <h3 class="tool-name">Gemini</h3>
+          <p class="tool-desc">Google · 多模态 · 免费版强</p>
+          <div class="tool-meta"><span class="tool-cat">对话</span><span>★ 4.6</span></div>
+        </a>
+      </div>
+    </section>
+
+    <p style="text-align: center; color: var(--fg-dim); margin-top: var(--space-9);">
+      📦 18 个精选工具 · 6 个分类 · 持续更新中
+    </p>
+  </main>
+
+  <footer class="site-footer">
+    <p>✦ AI 未来星域社区 · 插件工具模块 · v1.0 MVP</p>
+  </footer>
+
+  <script type="module" src="app.js"></script>
+  <script type="module" src="cosmic-scene.js"></script>
+  <script type="module">
+    // § Filter pills 交互
+    const pills = document.querySelectorAll('.filter-pill');
+    const sections = document.querySelectorAll('.cat-section');
+
+    pills.forEach((p) => {
+      p.addEventListener('click', () => {
+        const cat = p.dataset.cat;
+        // 切换 aria-pressed
+        pills.forEach((q) => q.setAttribute('aria-pressed', q === p ? 'true' : 'false'));
+        // 筛选 sections
+        sections.forEach((s) => {
+          if (cat === 'all' || s.dataset.cat === cat) {
+            s.classList.remove('hidden');
+          } else {
+            s.classList.add('hidden');
+          }
+        });
+        // 顶部 page-head 滚动定位
+        if (cat !== 'all') {
+          const target = document.querySelector(`.cat-section[data-cat="${cat}"]`);
+          if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      });
+    });
+  </script>
+</body>
+</html>

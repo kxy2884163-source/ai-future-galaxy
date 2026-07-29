@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <base href="/cosmic/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>资源详情 · AI 未来星域社区</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .detail-wrap {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: var(--space-6) var(--space-5) var(--space-9);
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: var(--space-6);
+    }
+    @media (max-width: 880px) {
+      .detail-wrap { grid-template-columns: 1fr; }
+    }
+
+    .breadcrumb {
+      margin-bottom: var(--space-4);
+      font-size: 13px;
+      color: var(--fg-mute);
+    }
+    .breadcrumb a {
+      color: var(--fg-mute);
+    }
+    .breadcrumb a:hover { color: var(--accent); }
+
+    .cover {
+      height: 220px;
+      border-radius: var(--radius-lg);
+      display: grid;
+      place-items: center;
+      font-size: 72px;
+      filter: drop-shadow(0 0 12px rgba(255,255,255,0.15));
+      margin-bottom: var(--space-5);
+    }
+
+    .resource-type {
+      font-size: 11px;
+      color: var(--accent);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: var(--space-2);
+    }
+    .resource-title {
+      font-size: clamp(24px, 4vw, 36px);
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: var(--space-3);
+    }
+    .resource-desc {
+      color: var(--fg-mute);
+      font-size: 15px;
+      margin-bottom: var(--space-5);
+    }
+
+    .content-block {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      -webkit-backdrop-filter: blur(var(--blur));
+      backdrop-filter: blur(var(--blur));
+      padding: var(--space-5);
+      margin-bottom: var(--space-5);
+    }
+    .content-block h2 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: var(--space-3);
+    }
+    .content-block p,
+    .content-block li {
+      color: var(--fg-mute);
+      line-height: 1.7;
+      margin-bottom: var(--space-2);
+    }
+    .content-block ul { padding-left: var(--space-5); }
+
+    .aside-card {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      -webkit-backdrop-filter: blur(var(--blur));
+      backdrop-filter: blur(var(--blur));
+      padding: var(--space-5);
+      margin-bottom: var(--space-4);
+    }
+    .aside-card h3 {
+      font-size: 14px;
+      color: var(--fg-mute);
+      margin-bottom: var(--space-3);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .author-card {
+      display: flex;
+      gap: var(--space-3);
+      align-items: center;
+    }
+    .author-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      display: grid;
+      place-items: center;
+      font-size: 22px;
+      color: var(--bg-0);
+      flex-shrink: 0;
+    }
+    .author-name {
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .author-bio {
+      font-size: 12px;
+      color: var(--fg-mute);
+    }
+    .meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--space-2) 0;
+      font-size: 14px;
+      border-bottom: 1px solid var(--glass-border);
+    }
+    .meta-row:last-child { border-bottom: none; }
+    .meta-row .label { color: var(--fg-mute); }
+    .meta-row .value { color: var(--fg); font-weight: 600; }
+
+    .related {
+      margin-top: var(--space-7);
+    }
+    .related h3 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: var(--space-4);
+    }
+    .related-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: var(--space-3);
+    }
+    .related-item {
+      padding: var(--space-4);
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      -webkit-backdrop-filter: blur(var(--blur));
+      backdrop-filter: blur(var(--blur));
+      text-decoration: none;
+      color: var(--fg);
+      transition: all 0.2s ease;
+    }
+    .related-item:hover {
+      border-color: var(--accent);
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="canvas-bg" aria-hidden="true">
+    <canvas id="cosmic-canvas"></canvas>
+  </div>
+
+  <header class="site-header">
+    <a href="./index.html" class="brand" aria-label="AI 未来星域社区">
+      <span class="brand-mark">✦</span>
+      <span class="brand-text">AI 未来星域社区</span>
+    </a>
+    <nav class="site-nav" aria-label="主导航">
+      <a href="./index.html">社区</a>
+      <a href="./resource.html">知识</a>
+      <a href="./tools.html">工具</a>
+      <button id="nav-auth" class="btn btn-ghost" type="button">登录</button>
+    </nav>
+  </header>
+
+  <main class="detail-wrap">
+    <article>
+      <p class="breadcrumb">
+        <a href="./index.html">社区</a> ·
+        <a href="./resource.html">知识</a> ·
+        <span id="bc-title">详情</span>
+      </p>
+
+      <div class="cover" id="cover" aria-hidden="true">✦</div>
+
+      <span class="resource-type" id="res-type">类型</span>
+      <h1 class="resource-title" id="res-title">资源标题</h1>
+      <p class="resource-desc" id="res-desc">资源描述</p>
+
+      <div class="content-block">
+        <h2>关于这个资源</h2>
+        <p id="res-about">这是一段示例简介，介绍这个资源能帮你解决什么问题。MVP 阶段展示用，阶段 2 接 Supabase 数据库后会展示真实内容。</p>
+        <ul>
+          <li>✓ 结构化整理 · 拿来即用</li>
+          <li>✓ 持续更新 · 跟着 AI 行业演进</li>
+          <li>✓ 社区共建 · 用户贡献 + 评分</li>
+        </ul>
+      </div>
+
+      <div class="related">
+        <h3>相关推荐</h3>
+        <div class="related-grid" id="related">
+          <!-- 由 JS 注入 -->
+        </div>
+      </div>
+    </article>
+
+    <aside>
+      <div class="aside-card">
+        <h3>作者</h3>
+        <div class="author-card">
+          <div class="author-avatar" aria-hidden="true">✦</div>
+          <div>
+            <div class="author-name" id="author-name">星域小编</div>
+            <div class="author-bio">AI 未来星域社区官方</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="aside-card">
+        <h3>数据</h3>
+        <div class="meta-row"><span class="label">收藏</span><span class="value" id="meta-fav">0</span></div>
+        <div class="meta-row"><span class="label">下载</span><span class="value" id="meta-dl">0</span></div>
+        <div class="meta-row"><span class="label">评分</span><span class="value">★ 4.7</span></div>
+        <div class="meta-row"><span class="label">许可</span><span class="value">CC BY-NC</span></div>
+        <div class="meta-row"><span class="label">版本</span><span class="value">v1.0</span></div>
+      </div>
+
+      <div class="aside-card">
+        <h3>标签</h3>
+        <div style="display:flex; flex-wrap:wrap; gap:6px;">
+          <span style="padding:4px 10px; background: var(--glass-strong); border-radius: var(--radius-sm); font-size: 12px;">AI</span>
+          <span style="padding:4px 10px; background: var(--glass-strong); border-radius: var(--radius-sm); font-size: 12px;">教程</span>
+          <span style="padding:4px 10px; background: var(--glass-strong); border-radius: var(--radius-sm); font-size: 12px;">Prompt</span>
+          <span style="padding:4px 10px; background: var(--glass-strong); border-radius: var(--radius-sm); font-size: 12px;">免费</span>
+        </div>
+      </div>
+
+      <a href="./resource.html" class="btn btn-ghost" style="width: 100%; justify-content: center;">← 返回资源列表</a>
+    </aside>
+  </main>
+
+  <footer class="site-footer">
+    <p>✦ AI 未来星域社区 · 资源详情 · v1.0 MVP</p>
+  </footer>
+
+  <script type="module" src="app.js"></script>
+  <script type="module" src="cosmic-scene.js"></script>
+  <script type="module">
+    // § Mock 资源详情（跟 resource.html 同源 · 12 张卡）
+    const DATA = {
+      '01': { type: 'Prompt', title: '30+ ChatGPT 提效 Prompt 模板', icon: '💬', fav: 1280, dl: 8600, about: '从写作到编程，从学习到规划，直接套用。每个模板都经过实战验证，附带使用场景说明。' },
+      '02': { type: 'Prompt', title: 'Stable Diffusion 摄影 Prompt 大全', icon: '📸', fav: 950,  dl: 5200, about: '真实摄影风格关键词组合（人像/风景/街拍），配合权重调节和负面提示词技巧。' },
+      '03': { type: 'Prompt', title: 'Midjourney 角色一致性 Prompt 技巧', icon: '🎭', fav: 730,  dl: 4100, about: '多视图角色设计 · 跨场景一致性 · 服装道具变更而不变脸。' },
+      '04': { type: 'Model', title: 'Llama 3 开源大模型完全指南', icon: '🦙', fav: 1820, dl: 9800, about: '从环境搭建到本地部署，从 LoRA 微调到 RAG 集成，配完整代码示例。' },
+      '05': { type: 'Model', title: 'Mixtral 8x7B 模型对比评测', icon: '🌪️', fav: 670,  dl: 3100, about: '在 8 个常用任务上跟 GPT-3.5 / Claude Haiku / Llama 3 全方位对比。' },
+      '06': { type: 'Tool', title: 'Cursor 实战指南 · 写代码 ×10', icon: '⌨️', fav: 2100, dl: 12500, about: '从界面认识、Composing 模式、Cmd-K 重构，到多文件 Agent 协作的全套实战。' },
+      '07': { type: 'Tool', title: 'Perplexity 深度用法 · 替代 Google', icon: '🔍', fav: 1340, dl: 7400, about: 'Pro Search · Focus · Spaces · Collections 全功能详解，配 10 个场景模板。' },
+      '08': { type: 'Tool', title: 'n8n + AI 自动化工作流', icon: '⚡', fav: 880,  dl: 4600, about: '把 ChatGPT / Claude / Notion / Slack 串起来，每天省 3 小时手工操作。' },
+      '09': { type: 'Dataset', title: 'Alpaca 数据集 · 5 万条指令微调', icon: '📦', fav: 540, dl: 2900, about: 'Stanford 开源指令微调数据集，含 GPT-3.5 生成的 52K 条 instruction-response 对。' },
+      '10': { type: 'Dataset', title: 'ShareGPT 中文翻译版 · 8 万条', icon: '💾', fav: 620, dl: 3400, about: '高质量多轮对话数据集，中文翻译版本，支持中文 LLM 微调。' },
+      '11': { type: 'Inspiration', title: 'AI 生成艺术 Top 100 案例', icon: '🎨', fav: 1560, dl: 6900, about: '从 DALL·E 到 Midjourney · 从 Sora 到 Runway · 创意灵感与提示词解析。' },
+      '12': { type: 'Inspiration', title: 'AI 短剧剧本创作实战 30 篇', icon: '🎬', fav: 920, dl: 4800, about: '结构化提示词 + 完整剧本 · 涵盖都市 / 古风 / 科幻 / 喜剧四大题材。' },
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const params = new URLSearchParams(location.search);
+      const id = params.get('id') || '01';
+      const d = DATA[id] || DATA['01'];
+
+      document.getElementById('cover').textContent = d.icon;
+      document.getElementById('res-type').textContent = d.type;
+      document.getElementById('res-title').textContent = d.title;
+      document.getElementById('res-desc').textContent = d.about;
+      document.getElementById('res-about').textContent = d.about;
+      document.getElementById('bc-title').textContent = d.title;
+      document.title = d.title + ' · AI 未来星域社区';
+      document.getElementById('meta-fav').textContent = d.fav.toLocaleString();
+      document.getElementById('meta-dl').textContent = d.dl.toLocaleString();
+
+      // 相关推荐 — 同类型 4 个
+      const related = Object.entries(DATA)
+        .filter(([k, v]) => v.type === d.type && k !== id)
+        .slice(0, 4);
+      const relHtml = related.map(([k, v]) => `
+        <a class="related-item" href="./resource-detail.html?id=${k}">
+          <div style="font-size: 28px; margin-bottom: 6px;">${v.icon}</div>
+          <div style="font-size: 13px; font-weight: 600;">${v.title}</div>
+        </a>
+      `).join('');
+      document.getElementById('related').innerHTML = relHtml || '<p style="color: var(--fg-mute)">暂无相关推荐</p>';
+    });
+  </script>
+</body>
+</html>

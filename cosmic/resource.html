@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <base href="/cosmic/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>知识分享 · AI 未来星域社区</title>
+  <meta name="description" content="AI 知识分享 · 结构化资源中心 · 教程 · 案例 · 模型 · 工具 · 数据集">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .resource-wrap {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: var(--space-6) var(--space-5) var(--space-9);
+    }
+    .page-head {
+      margin-bottom: var(--space-6);
+    }
+    .page-head h1 {
+      font-size: clamp(28px, 4.5vw, 42px);
+      font-weight: 800;
+      margin-bottom: var(--space-3);
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .page-head p {
+      color: var(--fg-mute);
+      font-size: 15px;
+    }
+
+    /* Toolbar */
+    .toolbar {
+      display: flex;
+      gap: var(--space-3);
+      align-items: center;
+      flex-wrap: wrap;
+      padding: var(--space-4);
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-xl);
+      -webkit-backdrop-filter: blur(var(--blur));
+      backdrop-filter: blur(var(--blur));
+      margin-bottom: var(--space-6);
+    }
+    .toolbar .search {
+      flex: 1;
+      min-width: 240px;
+      padding: 8px 14px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      color: var(--fg);
+      font-size: 14px;
+    }
+    .toolbar .search:focus {
+      border-color: var(--accent);
+      background: rgba(255, 255, 255, 0.06);
+      outline: none;
+    }
+    .toolbar .filter {
+      display: flex;
+      gap: var(--space-2);
+      flex-wrap: wrap;
+    }
+    .filter-pill {
+      padding: 6px 14px;
+      border-radius: var(--radius);
+      background: transparent;
+      border: 1px solid var(--glass-border);
+      color: var(--fg-mute);
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+    .filter-pill:hover {
+      background: var(--glass-strong);
+      color: var(--fg);
+    }
+    .filter-pill[aria-pressed="true"] {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: var(--bg-0);
+      border-color: transparent;
+      font-weight: 600;
+    }
+
+    /* Resource cards */
+    .res-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: var(--space-4);
+    }
+    .res-card {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+      padding: 0;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      -webkit-backdrop-filter: blur(var(--blur));
+      backdrop-filter: blur(var(--blur));
+      overflow: hidden;
+      transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+      text-decoration: none;
+      color: var(--fg);
+    }
+    .res-card:hover {
+      transform: translateY(-3px);
+      border-color: var(--accent);
+      box-shadow: 0 12px 32px rgba(125, 249, 255, 0.12);
+      text-decoration: none;
+    }
+    .res-cover {
+      width: 100%;
+      height: 120px;
+      display: grid;
+      place-items: center;
+      font-size: 40px;
+      filter: drop-shadow(0 0 6px rgba(255,255,255,0.1));
+    }
+    .res-body {
+      padding: var(--space-4);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+    .res-type {
+      font-size: 11px;
+      color: var(--accent);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .res-title {
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.3;
+    }
+    .res-desc {
+      color: var(--fg-mute);
+      font-size: 13px;
+      flex: 1;
+    }
+    .res-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--fg-dim);
+      padding-top: var(--space-2);
+      border-top: 1px solid var(--glass-border);
+    }
+
+    /* Empty state */
+    .empty {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: var(--space-9);
+      color: var(--fg-mute);
+    }
+    .empty .glyph { font-size: 48px; opacity: 0.5; margin-bottom: var(--space-3); }
+
+    /* Pagination */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: var(--space-2);
+      margin-top: var(--space-7);
+      font-size: 14px;
+      color: var(--fg-mute);
+    }
+    .pagination button {
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--glass-border);
+      background: var(--glass);
+      color: var(--fg-mute);
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .pagination button:hover:not([disabled]) {
+      background: var(--glass-strong);
+      color: var(--accent);
+    }
+    .pagination button[disabled] {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+  <div class="canvas-bg" aria-hidden="true">
+    <canvas id="cosmic-canvas"></canvas>
+  </div>
+
+  <header class="site-header">
+    <a href="./index.html" class="brand" aria-label="AI 未来星域社区">
+      <span class="brand-mark">✦</span>
+      <span class="brand-text">AI 未来星域社区</span>
+    </a>
+    <nav class="site-nav" aria-label="主导航">
+      <a href="./index.html">社区</a>
+      <a href="./resource.html" aria-current="page">知识</a>
+      <a href="./tools.html">工具</a>
+      <button id="nav-auth" class="btn btn-ghost" type="button">登录</button>
+    </nav>
+  </header>
+
+  <main class="resource-wrap">
+    <header class="page-head">
+      <h1>📚 AI 知识分享</h1>
+      <p>结构化资源中心 · 教程 · 案例 · 模型 · 工具 · 数据集 · 灵感</p>
+    </header>
+
+    <div class="toolbar">
+      <input class="search" id="search" type="search" placeholder="搜索资源…" aria-label="搜索资源">
+      <div class="filter" role="tablist">
+        <button class="filter-pill" type="button" data-cat="all" aria-pressed="true">全部</button>
+        <button class="filter-pill" type="button" data-cat="prompt" aria-pressed="false">Prompt</button>
+        <button class="filter-pill" type="button" data-cat="model" aria-pressed="false">Model</button>
+        <button class="filter-pill" type="button" data-cat="tool" aria-pressed="false">Tool</button>
+        <button class="filter-pill" type="button" data-cat="dataset" aria-pressed="false">Dataset</button>
+        <button class="filter-pill" type="button" data-cat="inspiration" aria-pressed="false">Inspiration</button>
+      </div>
+    </div>
+
+    <div class="res-grid" id="res-grid">
+      <!-- 由 app.js 注入 -->
+    </div>
+
+    <div class="pagination" id="pagination"></div>
+  </main>
+
+  <footer class="site-footer">
+    <p>✦ AI 未来星域社区 · 知识分享模块 · v1.0 MVP</p>
+  </footer>
+
+  <script type="module" src="app.js"></script>
+  <script type="module" src="cosmic-scene.js"></script>
+  <script type="module">
+    // § Mock 数据（12 张资源卡 · 跟 PRD § 模块 2 对齐）
+    const RESOURCES = [
+      { id: '01', type: 'prompt',    title: '30+ ChatGPT 提效 Prompt 模板', desc: '从写作到编程，从学习到规划，直接套用。', icon: '💬', fav: 1280, dl: 8600 },
+      { id: '02', type: 'prompt',    title: 'Stable Diffusion 摄影 Prompt 大全', desc: '真实摄影风格关键词组合（人像/风景/街拍）。', icon: '📸', fav: 950,  dl: 5200 },
+      { id: '03', type: 'prompt',    title: 'Midjourney 角色一致性 Prompt 技巧', desc: '多视图角色设计 · 跨场景一致性。', icon: '🎭', fav: 730,  dl: 4100 },
+      { id: '04', type: 'model',     title: 'Llama 3 开源大模型完全指南', desc: '本地部署 + 微调 + 应用案例。', icon: '🦙', fav: 1820, dl: 9800 },
+      { id: '05', type: 'model',     title: 'Mixtral 8x7B 模型对比评测', desc: '跟 GPT-3.5 / Claude Haiku 全方位对比。', icon: '🌪️', fav: 670,  dl: 3100 },
+      { id: '06', type: 'tool',      title: 'Cursor 实战指南 · 写代码 ×10', desc: '从入门到精通 · Composing / Debug / Refactor。', icon: '⌨️', fav: 2100, dl: 12500 },
+      { id: '07', type: 'tool',      title: 'Perplexity 深度用法 · 替代 Google', desc: 'Pro Search · Focus · Spaces 全攻略。', icon: '🔍', fav: 1340, dl: 7400 },
+      { id: '08', type: 'tool',      title: 'n8n + AI 自动化工作流', desc: '把多个 AI 工具串起来，每天省 3 小时。', icon: '⚡', fav: 880,  dl: 4600 },
+      { id: '09', type: 'dataset',   title: 'Alpaca 数据集 · 5 万条指令微调', desc: '开源指令微调数据集 · LLaMA 训练必备。', icon: '📦', fav: 540,  dl: 2900 },
+      { id: '10', type: 'dataset',   title: 'ShareGPT 中文翻译版 · 8 万条', desc: '高质量多轮对话数据集，支持中文微调。', icon: '💾', fav: 620,  dl: 3400 },
+      { id: '11', type: 'inspiration', title: 'AI 生成艺术 Top 100 案例', desc: '从 DALL·E 到 Midjourney · 创意灵感。', icon: '🎨', fav: 1560, dl: 6900 },
+      { id: '12', type: 'inspiration', title: 'AI 短剧剧本创作实战 30 篇', desc: '结构化提示词 + 完整剧本 · 直接复用。', icon: '🎬', fav: 920,  dl: 4800 },
+    ];
+
+    // § 渲染
+    let currentCat = 'all';
+    let currentQuery = '';
+    let page = 1;
+    const PAGE_SIZE = 8;
+
+    function render() {
+      const filtered = RESOURCES.filter(r =>
+        (currentCat === 'all' || r.type === currentCat) &&
+        (!currentQuery || r.title.toLowerCase().includes(currentQuery.toLowerCase()))
+      );
+      const total = filtered.length;
+      const start = (page - 1) * PAGE_SIZE;
+      const slice = filtered.slice(start, start + PAGE_SIZE);
+      const grid = document.getElementById('res-grid');
+
+      if (slice.length === 0) {
+        grid.innerHTML = `
+          <div class="empty">
+            <div class="glyph">✦</div>
+            <p>没找到匹配的资源</p>
+          </div>`;
+      } else {
+        grid.innerHTML = slice.map(r => `
+          <a class="res-card" href="./resource-detail.html?id=${encodeURIComponent(r.id)}">
+            <div class="res-cover" aria-hidden="true">${r.icon}</div>
+            <div class="res-body">
+              <span class="res-type">${escapeType(r.type)}</span>
+              <h3 class="res-title">${escape(r.title)}</h3>
+              <p class="res-desc">${escape(r.desc)}</p>
+              <div class="res-meta">
+                <span>★ ${r.fav.toLocaleString()}</span>
+                <span>⬇ ${r.dl.toLocaleString()}</span>
+              </div>
+            </div>
+          </a>
+        `).join('');
+      }
+
+      // pagination
+      const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+      const pag = document.getElementById('pagination');
+      pag.innerHTML = `
+        <button id="prev-page" ${page === 1 ? 'disabled' : ''}>← 上一页</button>
+        <span>第 ${page} / ${totalPages} 页</span>
+        <button id="next-page" ${page === totalPages ? 'disabled' : ''}>下一页 →</button>
+      `;
+      document.getElementById('prev-page').onclick = () => { if (page > 1) { page--; render(); window.scrollTo({top:0,behavior:'smooth'}); } };
+      document.getElementById('next-page').onclick = () => { if (page < totalPages) { page++; render(); window.scrollTo({top:0,behavior:'smooth'}); } };
+    }
+
+    function escape(s) {
+      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+    function escapeType(t) {
+      return ({ prompt:'Prompt', model:'Model', tool:'Tool', dataset:'Dataset', inspiration:'Inspiration' })[t] || t;
+    }
+
+    // § Bind
+    document.addEventListener('DOMContentLoaded', () => {
+      // filter pills
+      document.querySelectorAll('.filter-pill').forEach(p => {
+        p.addEventListener('click', () => {
+          currentCat = p.dataset.cat;
+          page = 1;
+          document.querySelectorAll('.filter-pill').forEach(q =>
+            q.setAttribute('aria-pressed', q === p ? 'true' : 'false'));
+          render();
+        });
+      });
+      // search
+      document.getElementById('search').addEventListener('input', (e) => {
+        currentQuery = e.target.value;
+        page = 1;
+        render();
+      });
+      render();
+    });
+  </script>
+</body>
+</html>
