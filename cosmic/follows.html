@@ -171,6 +171,9 @@
   <script type="module" src="app.js"></script>
   <script type="module" src="cosmic-scene.js"></script>
   <script type="module">
+    // § Supabase 集成
+    import { getFollowing, toggleFollow, getCurrentUser, showBanner } from './app.js';
+
     const MOCK_USERS = [
       { id: 'u01', name: '星域小编', bio: 'AI 未来星域社区官方账号 · 每天 1 个 AI 灵感', stats: { resources: 12, followers: 1280 } },
       { id: 'u02', name: '小G军师', bio: '温柔甜美 + 东北老妹儿敞亮 · 写 PRD · 出 idea', stats: { resources: 8, followers: 642 } },
@@ -189,13 +192,23 @@
       return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
       const me = getCurrentUser();
-      const myId = me ? me.id : 'guest';
+      if (!me) {
+        showBanner('请先登录', 'warn');
+        setTimeout(() => location.href = './login.html', 1500);
+        return;
+      }
 
-      // § 关注的列表（localStorage 持久化）
-      let following = readJSON('cosmic.following', ['u01', 'u02', 'u03']);
-      const followers = ['u02', 'u03', 'u04', 'u05', 'u06']; // mock 数据
+      // § 关注的列表（Supabase 真实数据）
+      let following = [];
+      try {
+        following = await getFollowing();
+      } catch (e) {
+        console.warn('getFollowing:', e);
+        following = readJSON('cosmic.following', ['u01', 'u02', 'u03']);
+      }
+      const followers = ['u02', 'u03', 'u04', 'u05', 'u06']; // TODO 阶段 2: 真实粉丝列表
 
       document.getElementById('f-count').textContent = following.length;
       document.getElementById('fer-count').textContent = followers.length;
@@ -239,19 +252,31 @@
           `;
         }).join('');
         el.querySelectorAll('button').forEach(b => {
-          b.addEventListener('click', () => {
+          b.addEventListener('click', async () => {
             const id = b.dataset.id;
-            if (arr.includes(id)) {
-              arr = arr.filter(x => x !== id);
-              b.classList.remove('is-following');
-              b.textContent = '+ 关注';
+            const wasFollowing = b.classList.contains('is-following');
+            // 1. 乐观 UI
+            b.classList.toggle('is-following');
+            b.textContent = !wasFollowing ? '已关注' : '+ 关注';
+            // 2. localStorage 同步
+            const ls = readJSON('cosmic.following', []);
+            const idx = ls.indexOf(id);
+            if (idx >= 0 && wasFollowing) ls.splice(idx, 1);
+            else if (!wasFollowing) ls.push(id);
+            writeJSON('cosmic.following', ls);
+            // 3. following 数组更新
+            if (!wasFollowing) {
+              arr = [...arr, id];
             } else {
-              arr.push(id);
-              b.classList.add('is-following');
-              b.textContent = '已关注';
+              arr = arr.filter(x => x !== id);
             }
-            writeJSON('cosmic.following', arr);
             document.getElementById('f-count').textContent = arr.length;
+            // 4. Supabase 同步
+            try {
+              await toggleFollow(id);
+            } catch (e) {
+              showBanner(e.message || '操作失败', 'warn');
+            }
           });
         });
       }
