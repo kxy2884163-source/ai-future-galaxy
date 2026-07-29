@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <base href="/cosmic/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>注册 · AI 未来星域社区</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="canvas-bg" aria-hidden="true">
+    <canvas id="cosmic-canvas"></canvas>
+  </div>
+
+  <header class="site-header">
+    <a href="./index.html" class="brand" aria-label="AI 未来星域社区">
+      <span class="brand-mark">✦</span>
+      <span class="brand-text">AI 未来星域社区</span>
+    </a>
+    <nav class="site-nav" aria-label="主导航">
+      <a href="./resource.html">知识</a>
+      <a href="./tools.html">工具</a>
+      <button id="nav-auth" class="btn btn-ghost" type="button">登录</button>
+    </nav>
+  </header>
+
+  <main class="auth-wrap">
+    <section class="auth-card glass">
+      <h1>加入星域</h1>
+      <p class="auth-sub">创建账号 · 开始 AI 学习之旅</p>
+
+      <form class="auth-form" id="register-form" novalidate>
+        <label>
+          <span class="visually-hidden">用户名</span>
+          <input type="text" name="username" placeholder="用户名" required autocomplete="username" minlength="2" maxlength="20">
+        </label>
+        <label>
+          <span class="visually-hidden">邮箱</span>
+          <input type="email" name="email" placeholder="邮箱" required autocomplete="email">
+        </label>
+        <label>
+          <span class="visually-hidden">密码</span>
+          <input type="password" name="password" placeholder="密码（至少 6 位）" required autocomplete="new-password" minlength="6">
+        </label>
+        <label>
+          <span class="visually-hidden">确认密码</span>
+          <input type="password" name="confirm" placeholder="确认密码" required autocomplete="new-password" minlength="6">
+        </label>
+        <button type="submit" class="btn btn-primary">注册</button>
+      </form>
+
+      <p class="auth-foot">
+        已有账号？<a href="./login.html">立即登录</a>
+      </p>
+    </section>
+  </main>
+
+  <script type="module" src="app.js"></script>
+  <script type="module" src="cosmic-scene.js"></script>
+</body>
+</html>

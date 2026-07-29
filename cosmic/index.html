@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <base href="/cosmic/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>首页 · AI 未来星域社区</title>
+  <meta name="description" content="AI 爱好者的一站式成长宇宙 · 社交 / 知识 / 工具 / AI 在线">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="canvas-bg" aria-hidden="true">
+    <canvas id="cosmic-canvas"></canvas>
+  </div>
+
+  <header class="site-header">
+    <a href="./index.html" class="brand" aria-label="AI 未来星域社区">
+      <span class="brand-mark">✦</span>
+      <span class="brand-text">AI 未来星域社区</span>
+    </a>
+    <nav class="site-nav" aria-label="主导航">
+      <a href="./resource.html">知识</a>
+      <a href="./tools.html">工具</a>
+      <a href="./dashboard.html">个人主页</a>
+      <a href="./upload.html" class="btn btn-primary nav-cta">✦ 上传</a>
+      <button id="nav-auth" class="btn btn-ghost" type="button">登录</button>
+    </nav>
+  </header>
+
+  <main class="hero-wrap">
+    <section class="hero">
+      <h1 class="hero-title">
+        <span class="hero-accent" aria-hidden="true">✦</span>
+        AI 未来星域社区
+      </h1>
+      <p class="hero-sub">让孤独学习变成一起玩着学 · 把信息爆炸压成打开就能用</p>
+    </section>
+
+    <section class="modules" aria-label="4 大模块入口">
+      <a href="./dashboard.html" class="module-card module-social">
+        <div class="module-icon" aria-hidden="true">🌟</div>
+        <h2 class="module-title">社交页面</h2>
+        <p class="module-desc">找同好 · 组圈子 · 评论交流 · 私信</p>
+        <span class="module-cta">进入社区 →</span>
+      </a>
+
+      <a href="./resource.html" class="module-card module-knowledge">
+        <div class="module-icon" aria-hidden="true">📚</div>
+        <h2 class="module-title">AI 知识分享</h2>
+        <p class="module-desc">结构化资源中心 · 教程 · 案例 · 模型</p>
+        <span class="module-cta">浏览资源 →</span>
+      </a>
+
+      <a href="./tools.html" class="module-card module-tools">
+        <div class="module-icon" aria-hidden="true">🛠️</div>
+        <h2 class="module-title">常用插件工具</h2>
+        <p class="module-desc">收敛碎片 AI 工具 · 一键直跳</p>
+        <span class="module-cta">查看工具 →</span>
+      </a>
+
+      <a href="./upload.html" class="module-card module-ai">
+        <div class="module-icon" aria-hidden="true">🤖</div>
+        <h2 class="module-title">AI 在线使用</h2>
+        <p class="module-desc">打开就能用 · 免安装免部署</p>
+        <span class="module-cta">开始使用 →</span>
+      </a>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>✦ AI 未来星域社区 · 让孤独学习变成一起玩着学</p>
+  </footer>
+
+  <script type="module" src="app.js"></script>
+  <script type="module" src="cosmic-scene.js"></script>
+</body>
+</html>

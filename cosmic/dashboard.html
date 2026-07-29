@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <base href="/cosmic/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>个人主页 · AI 未来星域社区</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="canvas-bg" aria-hidden="true">
+    <canvas id="cosmic-canvas"></canvas>
+  </div>
+
+  <header class="site-header">
+    <a href="./index.html" class="brand" aria-label="AI 未来星域社区">
+      <span class="brand-mark">✦</span>
+      <span class="brand-text">AI 未来星域社区</span>
+    </a>
+    <nav class="site-nav" aria-label="主导航">
+      <a href="./index.html">社区</a>
+      <a href="./resource.html">知识</a>
+      <a href="./tools.html">工具</a>
+      <button id="nav-auth" class="btn btn-ghost" type="button">登出</button>
+    </nav>
+  </header>
+
+  <main class="dash-wrap">
+    <section class="dash-header glass">
+      <div class="dash-user">
+        <div class="dash-avatar" aria-hidden="true">✦</div>
+        <div>
+          <h2 id="user-name">加载中…</h2>
+          <p id="user-bio">这个人很懒，还没写简介</p>
+        </div>
+      </div>
+      <a href="./upload.html" class="btn btn-primary">✦ 上传资源</a>
+    </section>
+
+    <section class="dash-stats glass" aria-label="个人统计">
+      <div>
+        <strong id="stat-followers">0</strong>
+        <span>粉丝</span>
+      </div>
+      <div>
+        <strong id="stat-following">0</strong>
+        <span>关注</span>
+      </div>
+      <div>
+        <strong id="stat-resources">0</strong>
+        <span>作品</span>
+      </div>
+    </section>
+
+    <section class="dash-section">
+      <div class="dash-section-head">
+        <h3>我的作品</h3>
+        <a href="./upload.html" class="link-more">+ 新建作品</a>
+      </div>
+      <div id="my-resources" class="resource-grid">
+        <div class="empty-state">
+          <div class="empty-icon" aria-hidden="true">✦</div>
+          <p>加载中…</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="app.js"></script>
+  <script type="module" src="cosmic-scene.js"></script>
+</body>
+</html>
