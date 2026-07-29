@@ -263,7 +263,10 @@
   <script type="module" src="app.js"></script>
   <script type="module" src="cosmic-scene.js"></script>
   <script type="module">
-    // § Mock 数据（演示用 · 阶段 2 接 Supabase）
+    // § Supabase 集成
+    import { getCurrentUser, getUserResourceFavs, getUserLikes, getFollowing, toggleFollow, showBanner } from './app.js';
+
+    // § Mock 数据（仅作品 + 草稿用 mock · 其他tab走真实数据）
     const MOCK_RESOURCES = [
       { id: 'r01', icon: '💬', title: '30+ ChatGPT 提效 Prompt 模板', type: 'Prompt', meta: '3 天前 · 收藏 12' },
       { id: 'r02', icon: '🎨', title: 'Midjourney 角色一致性 Prompt', type: 'Prompt', meta: '上周 · 收藏 8' },
@@ -288,33 +291,47 @@
       return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
       const me = getCurrentUser();
       if (!me) {
-        showInline('请先登录');
+        showBanner('请先登录', 'warn');
+        setTimeout(() => location.href = './login.html', 1500);
         return;
       }
 
-      // § 顶部用户信息
+      // § 顶部用户信息（真实 data from Supabase · app.js 已缓存）
       document.getElementById('me-avatar').textContent = (me.username || '✦').slice(0, 1).toUpperCase();
       document.getElementById('me-name').textContent = me.username;
       document.getElementById('me-bio').textContent = me.bio || `${me.username} · 新加入 AI 未来星域社区`;
 
-      // § 统计
-      const favs = readJSON('cosmic.favs', []);
-      const likes = readJSON('cosmic.likes', {});
-      const likesTotal = Object.values(likes).reduce((a, b) => a + b, 0);
+      // § 统计（Supabase 真实数据）
+      let likesTotal = 0;
+      let followingCount = 0;
+      let followingIds = [];
+      try {
+        const likes = await getUserLikes();
+        likesTotal = likes.length;
+        followingIds = await getFollowing();
+        followingCount = followingIds.length;
+      } catch (e) {
+        console.warn('stats fetch:', e);
+        // fallback 到 localStorage
+        const lsLikes = readJSON('cosmic.likes', {});
+        likesTotal = Object.keys(lsLikes).length;
+      }
+
       const resources = readJSON('cosmic.resources', []);
       const myRes = resources.filter(r => r.userId === me.id);
+
       document.getElementById('s-followers').textContent = me.followers || 0;
-      document.getElementById('s-following').textContent = me.following || 0;
+      document.getElementById('s-following').textContent = followingCount;
       document.getElementById('s-resources').textContent = myRes.length + MOCK_RESOURCES.length;
       document.getElementById('s-likes').textContent = likesTotal;
 
       // § Tab 渲染
       renderWorks(myRes);
-      renderFavs(favs);
-      renderFollows();
+      renderFavs();          // 真实数据
+      renderFollows(followingIds);  // 真实数据
       renderDrafts(myRes);
 
       // § Tab 切换
@@ -327,13 +344,12 @@
         });
       });
 
-      // § 编辑资料（mock）
+      // § 编辑资料（localStorage · 阶段 2 完整版接 Supabase profiles）
       document.getElementById('edit-profile').addEventListener('click', () => {
         const bio = prompt('修改你的简介：', me.bio || '');
         if (bio !== null) {
           me.bio = bio;
           writeJSONLocal('cosmic.currentUser', me);
-          // 同步更新 users 表
           const users = readJSON('cosmic.users', []);
           const idx = users.findIndex(u => u.id === me.id);
           if (idx >= 0) {
@@ -341,7 +357,7 @@
             writeJSONLocal('cosmic.users', users);
           }
           document.getElementById('me-bio').textContent = bio;
-          showInline('简介已更新');
+          showBanner('简介已更新', 'success');
         }
       });
     });
@@ -367,13 +383,21 @@
       `).join('')}</div>`;
     }
 
-    function renderFavs(favs) {
+    async function renderFavs() {
       const panel = document.getElementById('panel-favs');
+      // 真实数据：从 Supabase 拿收藏
+      let favs = [];
+      try {
+        favs = await getUserResourceFavs();
+      } catch (e) {
+        // fallback localStorage
+        favs = readJSON('cosmic.favs', []);
+      }
+
       if (favs.length === 0) {
         panel.innerHTML = emptyHtml('☆', '还没有收藏', '去 <a href="./resource.html">资源页</a> 找点好东西');
         return;
       }
-      // 把 fav ID 映射到资源 mock 数据（演示用）
       const RES_MAP = {
         '01': { icon: '💬', title: '30+ ChatGPT 提效 Prompt 模板', type: 'Prompt' },
         '02': { icon: '📸', title: 'Stable Diffusion 摄影 Prompt', type: 'Prompt' },
@@ -383,19 +407,24 @@
         '11': { icon: '🎨', title: 'AI 生成艺术 Top 100 案例', type: 'Inspiration' },
       };
       const items = favs.map(id => RES_MAP[id] || { icon: '✦', title: `资源 ${id}`, type: 'Unknown' });
-      panel.innerHTML = `<div class="me-grid">${items.map(r => `
-        <a class="me-card" href="./resource-detail.html?id=${encodeURIComponent(favs[items.indexOf(r)])}">
+      panel.innerHTML = `<div class="me-grid">${items.map((r, i) => `
+        <a class="me-card" href="./resource-detail.html?id=${encodeURIComponent(favs[i])}">
           <div class="icon" aria-hidden="true">${r.icon}</div>
           <h4>${escape(r.title)}</h4>
           <p>${escape(r.type)}</p>
-          <div class="meta">★ 已收藏</div>
+          <div class="meta">★ 已收藏 · Supabase</div>
         </a>
       `).join('')}</div>`;
     }
 
-    function renderFollows() {
+    async function renderFollows(followingIds) {
       const panel = document.getElementById('panel-follows');
-      panel.innerHTML = `<div style="display:flex; flex-direction:column; gap:8px;">${MOCK_FOLLOWS.map(u => `
+      // 真实数据：合并 mock 用户 + 关注状态
+      const allUsers = MOCK_FOLLOWS.map(u => ({
+        ...u,
+        following: followingIds.includes(u.id),
+      }));
+      panel.innerHTML = `<div style="display:flex; flex-direction:column; gap:8px;">${allUsers.map(u => `
         <div class="me-follow">
           <div class="av">${escape(u.name.slice(0,1))}</div>
           <div class="info">
@@ -408,9 +437,21 @@
         </div>
       `).join('')}</div>`;
       panel.querySelectorAll('button').forEach(b => {
-        b.addEventListener('click', () => {
-          b.classList.toggle('is-following');
-          b.textContent = b.classList.contains('is-following') ? '已关注' : '+ 关注';
+        b.addEventListener('click', async () => {
+          const id = b.dataset.id;
+          const wasFollowing = b.classList.contains('is-following');
+          try {
+            const isFollowing = await toggleFollow(id);
+            if (isFollowing) {
+              b.classList.add('is-following');
+              b.textContent = '已关注';
+            } else {
+              b.classList.remove('is-following');
+              b.textContent = '+ 关注';
+            }
+          } catch (e) {
+            showBanner(e.message || '操作失败', 'error');
+          }
         });
       });
     }
@@ -439,19 +480,6 @@
         <p>${msg}</p>
         <p>${hint}</p>
       </div>`;
-    }
-
-    function showInline(text) {
-      const b = document.createElement('div');
-      b.textContent = text;
-      b.style.cssText = `
-        position: fixed; top: 80px; left: 50%; transform: translateX(-50%);
-        padding: 12px 24px; border-radius: 12px; z-index: 100;
-        background: rgba(107, 217, 104, 0.2); border: 1px solid var(--success);
-        -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
-        font-weight: 600;`;
-      document.body.appendChild(b);
-      setTimeout(() => b.remove(), 2500);
     }
   </script>
 </body>
