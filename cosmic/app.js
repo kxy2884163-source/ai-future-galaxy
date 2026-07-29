@@ -1,6 +1,7 @@
 // ==========================================================
 // AI 未来星域社区 · 应用脚本（Supabase 集成版）
 // 阶段 2 · 2026-07-29 端到端接入 Supabase
+// 阶段 3 · 2026-07-29 22:33 滚动入场动画
 // ==========================================================
 //
 // 改造说明：
@@ -13,6 +14,9 @@
 // 2. 让用户能直接注册后登录（不用邮件验证）
 //
 // ==========================================================
+
+// § 滚动入场动画（阶段 3 增强）
+import { initScrollAnimations } from './anim-up.js';
 
 // § Supabase client · CDN ESM 一行加载（零构建）
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
@@ -594,6 +598,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (flash && flash.text) {
     showBanner(flash.text, flash.type || 'info');
   }
+
+  // 7.8 滚动入场动画（已通过 import 自动加载）
+  initScrollAnimations();
 });
 
 // ==========================================================

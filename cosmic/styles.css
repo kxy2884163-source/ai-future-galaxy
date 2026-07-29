@@ -636,6 +636,29 @@ img { max-width: 100%; display: block; }
   outline-color: var(--danger);
 }
 
+/* §15c 滚动入场动画（阶段 3 增强） */
+.anim-up, .anim-fade, .anim-left, .anim-right {
+  opacity: 0;
+  transition: opacity 0.7s ease, transform 0.7s ease;
+  will-change: opacity, transform;
+}
+.anim-up {
+  transform: translateY(28px);
+}
+.anim-left {
+  transform: translateX(-28px);
+}
+.anim-right {
+  transform: translateX(28px);
+}
+.anim-up.is-visible,
+.anim-fade.is-visible,
+.anim-left.is-visible,
+.anim-right.is-visible {
+  opacity: 1;
+  transform: translate(0, 0);
+}
+
 /* §16 prefers-reduced-motion 适配 */
 @media (prefers-reduced-motion: reduce) {
   *,
