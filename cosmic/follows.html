@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <base href="/cosmic/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>关注 · AI 未来星域社区</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .follows-wrap {
+      max-width: 880px;
+      margin: 0 auto;
+      padding: var(--space-6) var(--space-5) var(--space-9);
+    }
+    .follows-head {
+      margin-bottom: var(--space-6);
+    }
+    .follows-head h1 {
+      font-size: clamp(28px, 4.5vw, 40px);
+      font-weight: 800;
+      margin-bottom: var(--space-3);
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .follows-head p {
+      color: var(--fg-mute);
+      font-size: 15px;
+    }
+    .follows-tabs {
+      display: flex;
+      gap: var(--space-2);
+      border-bottom: 1px solid var(--glass-border);
+      margin-bottom: var(--space-5);
+    }
+    .follows-tab {
+      padding: var(--space-3) var(--space-5);
+      background: transparent;
+      color: var(--fg-mute);
+      border: none;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .follows-tab[aria-selected="true"] {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    .follows-tab .count {
+      margin-left: 6px;
+      padding: 1px 6px;
+      background: var(--glass-strong);
+      border-radius: 8px;
+      font-size: 11px;
+    }
+    .follows-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+    .follows-item {
+      display: flex;
+      gap: var(--space-4);
+      padding: var(--space-4);
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      -webkit-backdrop-filter: blur(var(--blur));
+      backdrop-filter: blur(var(--blur));
+      transition: border-color 0.2s ease;
+    }
+    .follows-item:hover { border-color: var(--accent); }
+    .follows-item .av {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      display: grid;
+      place-items: center;
+      font-size: 22px;
+      color: var(--bg-0);
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .follows-item .body { flex: 1; min-width: 0; }
+    .follows-item .nm {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+    .follows-item .bi {
+      font-size: 13px;
+      color: var(--fg-mute);
+      margin-bottom: var(--space-2);
+    }
+    .follows-item .stats {
+      display: flex;
+      gap: var(--space-3);
+      font-size: 12px;
+      color: var(--fg-dim);
+    }
+    .follows-item button {
+      padding: 6px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--glass-border);
+      background: var(--glass);
+      color: var(--fg-mute);
+      font-size: 13px;
+      cursor: pointer;
+      align-self: center;
+      flex-shrink: 0;
+    }
+    .follows-item button.is-following {
+      background: rgba(125, 249, 255, 0.15);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .follows-empty {
+      text-align: center;
+      padding: var(--space-9) var(--space-5);
+      color: var(--fg-mute);
+    }
+    .follows-empty .icon { font-size: 48px; opacity: 0.5; margin-bottom: var(--space-3); }
+  </style>
+</head>
+<body>
+  <div class="canvas-bg" aria-hidden="true">
+    <canvas id="cosmic-canvas"></canvas>
+  </div>
+
+  <header class="site-header">
+    <a href="./index.html" class="brand" aria-label="AI 未来星域社区">
+      <span class="brand-mark">✦</span>
+      <span class="brand-text">AI 未来星域社区</span>
+    </a>
+    <nav class="site-nav" aria-label="主导航">
+      <a href="./index.html">社区</a>
+      <a href="./resource.html">知识</a>
+      <a href="./tools.html">工具</a>
+      <button id="nav-auth" class="btn btn-ghost" type="button">登录</button>
+    </nav>
+  </header>
+
+  <main class="follows-wrap">
+    <header class="follows-head">
+      <h1>👥 关注与粉丝</h1>
+      <p>管理你的社区关系 · 关注同好 · 接收动态</p>
+    </header>
+
+    <div class="follows-tabs" role="tablist">
+      <button class="follows-tab" data-tab="following" aria-selected="true" role="tab">
+        关注<span class="count" id="f-count">0</span>
+      </button>
+      <button class="follows-tab" data-tab="followers" role="tab">
+        粉丝<span class="count" id="fer-count">0</span>
+      </button>
+    </div>
+
+    <div class="follows-list" id="follows-list"></div>
+    <div class="follows-list" id="followers-list" hidden></div>
+  </main>
+
+  <footer class="site-footer">
+    <p>✦ AI 未来星域社区 · 关注与粉丝</p>
+  </footer>
+
+  <script type="module" src="app.js"></script>
+  <script type="module" src="cosmic-scene.js"></script>
+  <script type="module">
+    const MOCK_USERS = [
+      { id: 'u01', name: '星域小编', bio: 'AI 未来星域社区官方账号 · 每天 1 个 AI 灵感', stats: { resources: 12, followers: 1280 } },
+      { id: 'u02', name: '小G军师', bio: '温柔甜美 + 东北老妹儿敞亮 · 写 PRD · 出 idea', stats: { resources: 8, followers: 642 } },
+      { id: 'u03', name: 'Codex 程序员', bio: 'AI 辅助开发 · 写代码 ×10 · 三件套部署', stats: { resources: 24, followers: 1850 } },
+      { id: 'u04', name: 'AI 短剧小能手', bio: 'AI 短剧创作 + 实战 · 文案 + 镜头', stats: { resources: 16, followers: 920 } },
+      { id: 'u05', name: 'ComfyUI 画师', bio: 'Stable Diffusion 工作流 + LoRA 训练', stats: { resources: 32, followers: 2100 } },
+      { id: 'u06', name: 'AI 副业观察员', bio: '记录 AI 变现路径 · 不卖课不收徒', stats: { resources: 6, followers: 480 } },
+    ];
+
+    function readJSON(key, fallback = null) {
+      try { return JSON.parse(localStorage.getItem(key) || 'null') ?? fallback; }
+      catch { return fallback; }
+    }
+    function writeJSON(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
+    function escape(s) {
+      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const me = getCurrentUser();
+      const myId = me ? me.id : 'guest';
+
+      // § 关注的列表（localStorage 持久化）
+      let following = readJSON('cosmic.following', ['u01', 'u02', 'u03']);
+      const followers = ['u02', 'u03', 'u04', 'u05', 'u06']; // mock 数据
+
+      document.getElementById('f-count').textContent = following.length;
+      document.getElementById('fer-count').textContent = followers.length;
+
+      renderList('follows-list', MOCK_USERS.filter(u => following.includes(u.id)), following);
+      renderList('followers-list', MOCK_USERS.filter(u => followers.includes(u.id)), following);
+
+      document.querySelectorAll('.follows-tab').forEach(t => {
+        t.addEventListener('click', () => {
+          const tab = t.dataset.tab;
+          document.querySelectorAll('.follows-tab').forEach(q => q.setAttribute('aria-selected', q === t ? 'true' : 'false'));
+          document.querySelectorAll('.follows-list, #followers-list').forEach(p => p.hidden = true);
+          if (tab === 'following') document.getElementById('follows-list').hidden = false;
+          else document.getElementById('followers-list').hidden = false;
+        });
+      });
+
+      function renderList(elId, users, arr) {
+        const el = document.getElementById(elId);
+        if (users.length === 0) {
+          el.innerHTML = '<div class="follows-empty"><div class="icon">👥</div><p>还没有' + (elId.includes('followers') ? '粉丝' : '关注的人') + '</p></div>';
+          return;
+        }
+        el.innerHTML = users.map(u => {
+          const isFollowing = arr.includes(u.id);
+          return `
+            <div class="follows-item">
+              <div class="av">${escape(u.name.slice(0,1))}</div>
+              <div class="body">
+                <div class="nm">${escape(u.name)}</div>
+                <div class="bi">${escape(u.bio)}</div>
+                <div class="stats">
+                  <span>📦 ${u.stats.resources} 作品</span>
+                  <span>👥 ${u.stats.followers.toLocaleString()} 粉丝</span>
+                </div>
+              </div>
+              <button class="${isFollowing ? 'is-following' : ''}" data-id="${escape(u.id)}">
+                ${isFollowing ? '已关注' : '+ 关注'}
+              </button>
+            </div>
+          `;
+        }).join('');
+        el.querySelectorAll('button').forEach(b => {
+          b.addEventListener('click', () => {
+            const id = b.dataset.id;
+            if (arr.includes(id)) {
+              arr = arr.filter(x => x !== id);
+              b.classList.remove('is-following');
+              b.textContent = '+ 关注';
+            } else {
+              arr.push(id);
+              b.classList.add('is-following');
+              b.textContent = '已关注';
+            }
+            writeJSON('cosmic.following', arr);
+            document.getElementById('f-count').textContent = arr.length;
+          });
+        });
+      }
+    });
+  </script>
+</body>
+</html>

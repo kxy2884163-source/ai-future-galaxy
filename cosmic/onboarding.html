@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <base href="/cosmic/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>新用户引导 · AI 未来星域社区</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .onb-wrap {
+      min-height: calc(100vh - var(--header-h));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-6);
+    }
+    .onb-card {
+      max-width: 640px;
+      width: 100%;
+      padding: var(--space-7);
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-xl);
+      -webkit-backdrop-filter: blur(var(--blur));
+      backdrop-filter: blur(var(--blur));
+      text-align: center;
+    }
+    .onb-progress {
+      display: flex;
+      gap: var(--space-2);
+      justify-content: center;
+      margin-bottom: var(--space-5);
+    }
+    .onb-step {
+      width: 40px;
+      height: 4px;
+      border-radius: 2px;
+      background: var(--glass-border);
+      transition: background 0.3s ease;
+    }
+    .onb-step.is-active {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    }
+    .onb-step.is-done {
+      background: var(--accent);
+    }
+    .onb-glyph {
+      font-size: 80px;
+      margin-bottom: var(--space-4);
+      filter: drop-shadow(0 0 16px rgba(125, 249, 255, 0.4));
+      animation: floaty 4s ease-in-out infinite;
+    }
+    .onb-card h1 {
+      font-size: clamp(24px, 4vw, 32px);
+      font-weight: 800;
+      margin-bottom: var(--space-3);
+    }
+    .onb-card h1 .accent {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .onb-card p {
+      color: var(--fg-mute);
+      margin-bottom: var(--space-5);
+      line-height: 1.7;
+    }
+    .onb-modules {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--space-3);
+      margin-bottom: var(--space-5);
+    }
+    .onb-mod {
+      padding: var(--space-4);
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      text-align: left;
+    }
+    .onb-mod .icon { font-size: 28px; margin-bottom: var(--space-2); }
+    .onb-mod h3 { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+    .onb-mod p { font-size: 12px; color: var(--fg-mute); margin: 0; }
+    .onb-actions {
+      display: flex;
+      justify-content: space-between;
+      gap: var(--space-3);
+      margin-top: var(--space-5);
+    }
+    .onb-skip {
+      background: transparent;
+      border: none;
+      color: var(--fg-mute);
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .onb-skip:hover { color: var(--fg); }
+    .onb-input {
+      width: 100%;
+      padding: 14px 18px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      color: var(--fg);
+      font-size: 15px;
+      margin-bottom: var(--space-5);
+      text-align: left;
+    }
+    .onb-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: rgba(255,255,255,0.06);
+    }
+    @media (max-width: 640px) {
+      .onb-modules { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="canvas-bg" aria-hidden="true">
+    <canvas id="cosmic-canvas"></canvas>
+  </div>
+
+  <header class="site-header">
+    <a href="./index.html" class="brand" aria-label="AI 未来星域社区">
+      <span class="brand-mark">✦</span>
+      <span class="brand-text">AI 未来星域社区</span>
+    </a>
+    <nav class="site-nav" aria-label="主导航">
+      <a href="./index.html">社区</a>
+      <a href="./resource.html">知识</a>
+      <a href="./tools.html">工具</a>
+      <button id="nav-auth" class="btn btn-ghost" type="button">登录</button>
+    </nav>
+  </header>
+
+  <main class="onb-wrap">
+    <div class="onb-card" id="onb-card">
+      <!-- 内容由 JS 注入 -->
+    </div>
+  </main>
+
+  <script type="module" src="app.js"></script>
+  <script type="module" src="cosmic-scene.js"></script>
+  <script type="module">
+    const LS_ONB = 'cosmic.onboarded';
+    const STEPS = [
+      {
+        glyph: '✦',
+        title: '<span class="accent">欢迎加入 AI 未来星域</span>',
+        body: '<p>这里是 AI 爱好者的一站式成长宇宙 · 让孤独学习变成一起玩着学 · 把信息爆炸压成打开就能用。</p><p>下面 4 步带你认识这个社区的核心能力 · 大约 30 秒。</p>',
+        nextLabel: '开始 →',
+      },
+      {
+        glyph: '🌟',
+        title: '<span class="accent">4 大模块</span>',
+        body: '<p>我们提供 4 大模块 · 解决 AI 学习路上的 4 个核心痛点：</p><div class="onb-modules">' +
+              '<div class="onb-mod"><div class="icon">🌟</div><h3>社交页面</h3><p>找同好 · 组圈子</p></div>' +
+              '<div class="onb-mod"><div class="icon">📚</div><h3>AI 知识分享</h3><p>结构化资源中心</p></div>' +
+              '<div class="onb-mod"><div class="icon">🛠️</div><h3>常用插件工具</h3><p>一键直跳</p></div>' +
+              '<div class="onb-mod"><div class="icon">🤖</div><h3>AI 在线使用</h3><p>打开就能用</p></div></div>' +
+              '<p>接下来试试「AI 在线使用」模块 · 用 AI 帮你写点东西</p>',
+        nextLabel: '试试 AI →',
+      },
+      {
+        glyph: '🤖',
+        title: '<span class="accent">试试 AI 在线使用</span>',
+        body: '<p>输入任何需求 · 选择任务模板和模型 · 点生成</p>' +
+              '<input class="onb-input" id="onb-prompt" placeholder="例如：写一句自我介绍，100 字以内">' +
+              '<p style="font-size: 13px;">这是 mock 演示 · 阶段 2 接 Supabase 后用真实 API</p>',
+        nextLabel: '完成 →',
+        beforeNext: () => {
+          // 记录用户输入（演示用）
+          const v = document.getElementById('onb-prompt').value;
+          if (v) localStorage.setItem('cosmic.onbFirstPrompt', v);
+        },
+      },
+      {
+        glyph: '🎉',
+        title: '<span class="accent">准备好了！</span>',
+        body: '<p>你已经了解 AI 未来星域社区的核心能力 · 现在可以去逛逛了。</p>' +
+              '<div class="onb-modules">' +
+              '<a class="onb-mod" href="./index.html" style="text-decoration:none; color:inherit;"><div class="icon">🏠</div><h3>回到首页</h3><p>看社区动态</p></a>' +
+              '<a class="onb-mod" href="./resource.html" style="text-decoration:none; color:inherit;"><div class="icon">📚</div><h3>浏览知识</h3><p>12+ 精选资源</p></a>' +
+              '<a class="onb-mod" href="./tools.html" style="text-decoration:none; color:inherit;"><div class="icon">🛠️</div><h3>看工具</h3><p>18 个 AI 工具</p></a>' +
+              '<a class="onb-mod" href="./upload.html" style="text-decoration:none; color:inherit;"><div class="icon">🤖</div><h3>用 AI</h3><p>在线试用</p></a></div>',
+        nextLabel: '完成',
+        isLast: true,
+      },
+    ];
+
+    let step = 0;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // 如果已完成过 · 直接跳首页
+      if (localStorage.getItem(LS_ONB) === 'done') {
+        location.href = './index.html';
+        return;
+      }
+      render();
+    });
+
+    function render() {
+      const s = STEPS[step];
+      const card = document.getElementById('onb-card');
+
+      // 进度条
+      const progress = STEPS.map((_, i) => {
+        const cls = i === step ? 'is-active' : (i < step ? 'is-done' : '');
+        return `<div class="onb-step ${cls}" aria-hidden="true"></div>`;
+      }).join('');
+
+      card.innerHTML = `
+        <div class="onb-progress">${progress}</div>
+        <div class="onb-glyph" aria-hidden="true">${s.glyph}</div>
+        <h1>${s.title}</h1>
+        ${s.body}
+        <div class="onb-actions">
+          <button class="onb-skip" id="onb-skip" type="button">跳过引导</button>
+          <button class="btn btn-primary" id="onb-next" type="button">${s.nextLabel}</button>
+        </div>
+      `;
+
+      document.getElementById('onb-skip').addEventListener('click', () => {
+        localStorage.setItem(LS_ONB, 'done');
+        location.href = './index.html';
+      });
+      document.getElementById('onb-next').addEventListener('click', () => {
+        if (s.beforeNext) s.beforeNext();
+        if (s.isLast) {
+          localStorage.setItem(LS_ONB, 'done');
+          location.href = './index.html';
+          return;
+        }
+        step++;
+        render();
+      });
+    }
+  </script>
+</body>
+</html>

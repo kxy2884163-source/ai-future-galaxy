@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <base href="/cosmic/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>通知中心 · AI 未来星域社区</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .notif-wrap {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: var(--space-6) var(--space-5) var(--space-9);
+    }
+    .notif-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      gap: var(--space-3);
+      margin-bottom: var(--space-6);
+    }
+    .notif-head h1 {
+      font-size: clamp(28px, 4.5vw, 40px);
+      font-weight: 800;
+      margin-bottom: var(--space-3);
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .notif-head p {
+      color: var(--fg-mute);
+      font-size: 15px;
+    }
+    .notif-tabs {
+      display: flex;
+      gap: var(--space-2);
+      border-bottom: 1px solid var(--glass-border);
+      margin-bottom: var(--space-5);
+      overflow-x: auto;
+    }
+    .notif-tab {
+      padding: var(--space-3) var(--space-5);
+      background: transparent;
+      color: var(--fg-mute);
+      border: none;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .notif-tab[aria-selected="true"] {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    .notif-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+    .notif-item {
+      display: flex;
+      gap: var(--space-3);
+      padding: var(--space-4);
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      -webkit-backdrop-filter: blur(var(--blur));
+      backdrop-filter: blur(var(--blur));
+      transition: border-color 0.2s ease, background 0.2s ease;
+    }
+    .notif-item.is-unread {
+      background: rgba(125, 249, 255, 0.06);
+      border-color: rgba(125, 249, 255, 0.3);
+    }
+    .notif-item:hover { border-color: var(--accent); }
+    .notif-item .icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    .notif-item.cmt .icon { background: rgba(125, 249, 255, 0.15); color: var(--accent); }
+    .notif-item.like .icon { background: rgba(255, 107, 157, 0.15); color: var(--accent-3); }
+    .notif-item.follow .icon { background: rgba(179, 136, 255, 0.15); color: var(--accent-2); }
+    .notif-item.sys .icon { background: rgba(107, 217, 104, 0.15); color: var(--success); }
+    .notif-item.fav .icon { background: rgba(255, 200, 87, 0.15); color: var(--warn); }
+    .notif-item .body {
+      flex: 1;
+      min-width: 0;
+    }
+    .notif-item .text {
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .notif-item .text strong {
+      color: var(--fg);
+      font-weight: 600;
+    }
+    .notif-item .text a {
+      color: var(--accent);
+    }
+    .notif-item .time {
+      font-size: 12px;
+      color: var(--fg-dim);
+      margin-top: 2px;
+    }
+    .notif-item .actions {
+      display: flex;
+      gap: 6px;
+      align-items: flex-start;
+      flex-shrink: 0;
+    }
+    .notif-item .actions button {
+      width: 24px;
+      height: 24px;
+      border: none;
+      background: transparent;
+      color: var(--fg-dim);
+      cursor: pointer;
+      font-size: 14px;
+      border-radius: 50%;
+    }
+    .notif-item .actions button:hover {
+      background: var(--glass-strong);
+      color: var(--fg);
+    }
+    .notif-empty {
+      text-align: center;
+      padding: var(--space-9) var(--space-5);
+      color: var(--fg-mute);
+    }
+    .notif-empty .icon { font-size: 48px; opacity: 0.5; margin-bottom: var(--space-3); }
+  </style>
+</head>
+<body>
+  <div class="canvas-bg" aria-hidden="true">
+    <canvas id="cosmic-canvas"></canvas>
+  </div>
+
+  <header class="site-header">
+    <a href="./index.html" class="brand" aria-label="AI 未来星域社区">
+      <span class="brand-mark">✦</span>
+      <span class="brand-text">AI 未来星域社区</span>
+    </a>
+    <nav class="site-nav" aria-label="主导航">
+      <a href="./index.html">社区</a>
+      <a href="./resource.html">知识</a>
+      <a href="./tools.html">工具</a>
+      <button id="nav-auth" class="btn btn-ghost" type="button">登录</button>
+    </nav>
+  </header>
+
+  <main class="notif-wrap">
+    <header class="notif-head">
+      <div>
+        <h1>🔔 通知中心</h1>
+        <p>你的所有动态都在这里</p>
+      </div>
+      <button class="btn btn-ghost" id="mark-all" type="button">全部已读</button>
+    </header>
+
+    <div class="notif-tabs" role="tablist">
+      <button class="notif-tab" data-tab="all" aria-selected="true" role="tab">全部<span class="notif-count"></span></button>
+      <button class="notif-tab" data-tab="cmt" role="tab">💬 评论</button>
+      <button class="notif-tab" data-tab="like" role="tab">👍 点赞</button>
+      <button class="notif-tab" data-tab="follow" role="tab">👥 关注</button>
+      <button class="notif-tab" data-tab="fav" role="tab">★ 收藏</button>
+      <button class="notif-tab" data-tab="sys" role="tab">✦ 系统</button>
+    </div>
+
+    <div class="notif-list" id="notif-list"></div>
+  </main>
+
+  <footer class="site-footer">
+    <p>✦ AI 未来星域社区 · 通知中心</p>
+  </footer>
+
+  <script type="module" src="app.js"></script>
+  <script type="module" src="cosmic-scene.js"></script>
+  <script type="module">
+    // § Mock 通知
+    const NOTIFS = [
+      { id: 'n1', type: 'cmt', icon: '💬', text: '<strong>Codex 程序员</strong> 评论了你的资源 <a href="./resource-detail.html?id=01">30+ ChatGPT 提效 Prompt 模板</a>', time: '5 分钟前', unread: true },
+      { id: 'n2', type: 'like', icon: '👍', text: '<strong>小G军师</strong> 点赞了你的资源 <a href="./resource-detail.html?id=04">Llama 3 开源大模型指南</a>', time: '1 小时前', unread: true },
+      { id: 'n3', type: 'follow', icon: '👥', text: '<strong>AI 短剧小能手</strong> 关注了你', time: '今天 10:24', unread: false },
+      { id: 'n4', type: 'sys', icon: '✦', text: '欢迎加入 AI 未来星域社区 · 4 大模块等你探索', time: '昨天', unread: false },
+      { id: 'n5', type: 'fav', icon: '★', text: '<strong>ComfyUI 画师</strong> 收藏了你的资源 <a href="./resource-detail.html?id=03">Midjourney 角色一致性 Prompt</a>', time: '2 天前', unread: false },
+      { id: 'n6', type: 'cmt', icon: '💬', text: '<strong>星域小编</strong> 回复了你的评论：「这个思路很赞！👍」', time: '上周', unread: false },
+      { id: 'n7', type: 'like', icon: '👍', text: '<strong>AI 副业观察员</strong> 点赞了你的资源 <a href="./resource-detail.html?id=06">Cursor 实战指南</a>', time: '上周', unread: false },
+      { id: 'n8', type: 'follow', icon: '👥', text: '<strong>社区观察员</strong> 关注了你', time: '2 周前', unread: false },
+    ];
+
+    function escape(s) {
+      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    let currentTab = 'all';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      render();
+
+      document.querySelectorAll('.notif-tab').forEach(t => {
+        t.addEventListener('click', () => {
+          currentTab = t.dataset.tab;
+          document.querySelectorAll('.notif-tab').forEach(q => q.setAttribute('aria-selected', q === t ? 'true' : 'false'));
+          render();
+        });
+      });
+
+      document.getElementById('mark-all').addEventListener('click', () => {
+        NOTIFS.forEach(n => n.unread = false);
+        render();
+      });
+
+      // Bind 单条已读 / 删除
+      document.getElementById('notif-list').addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-act]');
+        if (!btn) return;
+        const item = btn.closest('.notif-item');
+        const id = item.dataset.id;
+        if (btn.dataset.act === 'read') {
+          const n = NOTIFS.find(x => x.id === id);
+          if (n) n.unread = false;
+          render();
+        } else if (btn.dataset.act === 'remove') {
+          const idx = NOTIFS.findIndex(x => x.id === id);
+          if (idx >= 0) NOTIFS.splice(idx, 1);
+          render();
+        }
+      });
+    });
+
+    function render() {
+      const list = document.getElementById('notif-list');
+      const items = NOTIFS.filter(n => currentTab === 'all' || n.type === currentTab);
+      if (items.length === 0) {
+        list.innerHTML = '<div class="notif-empty"><div class="icon">🔔</div><p>暂无通知</p></div>';
+        return;
+      }
+      list.innerHTML = items.map(n => `
+        <div class="notif-item ${n.type} ${n.unread ? 'is-unread' : ''}" data-id="${escape(n.id)}">
+          <div class="icon" aria-hidden="true">${n.icon}</div>
+          <div class="body">
+            <div class="text">${n.text}</div>
+            <div class="time">${escape(n.time)}</div>
+          </div>
+          <div class="actions">
+            ${n.unread ? '<button data-act="read" title="标为已读">●</button>' : ''}
+            <button data-act="remove" title="删除">×</button>
+          </div>
+        </div>
+      `).join('');
+    }
+  </script>
+</body>
+</html>

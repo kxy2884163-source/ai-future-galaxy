@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <base href="/cosmic/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>设置 · AI 未来星域社区</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .settings-wrap {
+      max-width: 880px;
+      margin: 0 auto;
+      padding: var(--space-6) var(--space-5) var(--space-9);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-5);
+    }
+    .settings-head h1 {
+      font-size: clamp(28px, 4.5vw, 40px);
+      font-weight: 800;
+      margin-bottom: var(--space-3);
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .settings-head p {
+      color: var(--fg-mute);
+      font-size: 15px;
+    }
+    .settings-section {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      -webkit-backdrop-filter: blur(var(--blur));
+      backdrop-filter: blur(var(--blur));
+      padding: var(--space-6);
+    }
+    .settings-section h2 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: var(--space-2);
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+    .settings-section .desc {
+      color: var(--fg-mute);
+      font-size: 13px;
+      margin-bottom: var(--space-4);
+    }
+    .form-row {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+      margin-bottom: var(--space-4);
+    }
+    .form-row label {
+      font-size: 13px;
+      color: var(--fg-mute);
+      font-weight: 500;
+    }
+    .form-row input, .form-row textarea {
+      width: 100%;
+      padding: 10px 14px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      color: var(--fg);
+      font-size: 14px;
+    }
+    .form-row input:focus, .form-row textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: rgba(255,255,255,0.06);
+    }
+    .form-row textarea {
+      min-height: 80px;
+      resize: vertical;
+      font-family: var(--font);
+    }
+    .switch-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--space-3) 0;
+      border-bottom: 1px solid var(--glass-border);
+    }
+    .switch-row:last-child { border-bottom: none; }
+    .switch-row .info { flex: 1; min-width: 0; padding-right: var(--space-3); }
+    .switch-row .title { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+    .switch-row .sub { font-size: 12px; color: var(--fg-mute); }
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background: var(--glass-border);
+      border-radius: 24px;
+      transition: background 0.2s ease;
+    }
+    .slider::before {
+      content: '';
+      position: absolute;
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background: var(--fg);
+      border-radius: 50%;
+      transition: transform 0.2s ease;
+    }
+    .switch input:checked + .slider {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    }
+    .switch input:checked + .slider::before {
+      transform: translateX(20px);
+      background: var(--bg-0);
+    }
+    .danger-zone {
+      background: rgba(255, 93, 108, 0.05);
+      border: 1px solid rgba(255, 93, 108, 0.3);
+    }
+    .danger-zone h2 { color: var(--danger); }
+    .danger-zone button {
+      padding: 8px 16px;
+      border-radius: var(--radius);
+      border: 1px solid var(--danger);
+      background: rgba(255, 93, 108, 0.1);
+      color: var(--danger);
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .danger-zone button:hover { background: rgba(255, 93, 108, 0.2); }
+    .save-bar {
+      display: flex;
+      justify-content: flex-end;
+      gap: var(--space-2);
+      position: sticky;
+      bottom: var(--space-4);
+    }
+  </style>
+</head>
+<body>
+  <div class="canvas-bg" aria-hidden="true">
+    <canvas id="cosmic-canvas"></canvas>
+  </div>
+
+  <header class="site-header">
+    <a href="./index.html" class="brand" aria-label="AI 未来星域社区">
+      <span class="brand-mark">✦</span>
+      <span class="brand-text">AI 未来星域社区</span>
+    </a>
+    <nav class="site-nav" aria-label="主导航">
+      <a href="./index.html">社区</a>
+      <a href="./resource.html">知识</a>
+      <a href="./tools.html">工具</a>
+      <button id="nav-auth" class="btn btn-ghost" type="button">登录</button>
+    </nav>
+  </header>
+
+  <main class="settings-wrap">
+    <header class="settings-head">
+      <h1>⚙️ 设置</h1>
+      <p>账号 · 隐私 · 通知 · 主题 · 危险区</p>
+    </header>
+
+    <!-- 账号设置 -->
+    <section class="settings-section">
+      <h2>👤 账号</h2>
+      <p class="desc">基础资料 · 修改后立即生效</p>
+      <div class="form-row">
+        <label for="s-username">用户名</label>
+        <input id="s-username" type="text" maxlength="20">
+      </div>
+      <div class="form-row">
+        <label for="s-email">邮箱</label>
+        <input id="s-email" type="email" disabled>
+        <span style="font-size: 11px; color: var(--fg-dim);">（邮箱修改需要验证 · 阶段 2 接 Supabase 后启用）</span>
+      </div>
+      <div class="form-row">
+        <label for="s-bio">个人简介</label>
+        <textarea id="s-bio" maxlength="200"></textarea>
+      </div>
+      <div style="text-align: right;">
+        <button class="btn btn-primary" id="save-account" type="button">保存</button>
+      </div>
+    </section>
+
+    <!-- 隐私设置 -->
+    <section class="settings-section">
+      <h2>🔒 隐私</h2>
+      <p class="desc">控制谁能看到你的资料和动态</p>
+      <div class="switch-row">
+        <div class="info">
+          <div class="title">公开个人主页</div>
+          <div class="sub">任何人都能看到你的个人主页和作品</div>
+        </div>
+        <label class="switch"><input type="checkbox" id="sw-public" checked><span class="slider"></span></label>
+      </div>
+      <div class="switch-row">
+        <div class="info">
+          <div class="title">允许陌生人私信</div>
+          <div class="sub">非互关的人可以给你发私信</div>
+        </div>
+        <label class="switch"><input type="checkbox" id="sw-dm"><span class="slider"></span></label>
+      </div>
+      <div class="switch-row">
+        <div class="info">
+          <div class="title">显示在线状态</div>
+          <div class="sub">让别人看到你在线</div>
+        </div>
+        <label class="switch"><input type="checkbox" id="sw-online" checked><span class="slider"></span></label>
+      </div>
+    </section>
+
+    <!-- 通知偏好 -->
+    <section class="settings-section">
+      <h2>🔔 通知</h2>
+      <p class="desc">哪些通知要发给你</p>
+      <div class="switch-row">
+        <div class="info">
+          <div class="title">评论和回复</div>
+          <div class="sub">你的资源或评论被回复时</div>
+        </div>
+        <label class="switch"><input type="checkbox" id="sw-cmt" checked><span class="slider"></span></label>
+      </div>
+      <div class="switch-row">
+        <div class="info">
+          <div class="title">点赞和收藏</div>
+          <div class="sub">你的资源被点赞或收藏</div>
+        </div>
+        <label class="switch"><input type="checkbox" id="sw-like" checked><span class="slider"></span></label>
+      </div>
+      <div class="switch-row">
+        <div class="info">
+          <div class="title">关注动态</div>
+          <div class="sub">有人关注你</div>
+        </div>
+        <label class="switch"><input type="checkbox" id="sw-follow" checked><span class="slider"></span></label>
+      </div>
+      <div class="switch-row">
+        <div class="info">
+          <div class="title">系统通知</div>
+          <div class="sub">产品更新 / 公告</div>
+        </div>
+        <label class="switch"><input type="checkbox" id="sw-sys"><span class="slider"></span></label>
+      </div>
+    </section>
+
+    <!-- 危险区 -->
+    <section class="settings-section danger-zone">
+      <h2>⚠️ 危险区</h2>
+      <p class="desc">不可逆操作 · 请谨慎</p>
+      <div class="switch-row" style="border: none;">
+        <div class="info">
+          <div class="title">注销账号</div>
+          <div class="sub">所有数据将被永久删除 · 不可恢复</div>
+        </div>
+        <button id="delete-account" type="button">注销账号</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>✦ AI 未来星域社区 · 设置</p>
+  </footer>
+
+  <script type="module" src="app.js"></script>
+  <script type="module" src="cosmic-scene.js"></script>
+  <script type="module">
+    function readJSON(key, fallback = null) {
+      try { return JSON.parse(localStorage.getItem(key) || 'null') ?? fallback; }
+      catch { return fallback; }
+    }
+    function writeJSON(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const me = getCurrentUser();
+      if (!me) {
+        // 未登录 · 显示表单 disabled
+        document.getElementById('s-username').placeholder = '请先登录';
+        document.getElementById('s-bio').placeholder = '请先登录';
+        return;
+      }
+
+      document.getElementById('s-username').value = me.username || '';
+      document.getElementById('s-email').value = me.email || '';
+      document.getElementById('s-bio').value = me.bio || '';
+
+      // 加载偏好
+      const prefs = readJSON('cosmic.prefs', {
+        public: true, dm: false, online: true,
+        cmt: true, like: true, follow: true, sys: false,
+      });
+      document.getElementById('sw-public').checked = prefs.public;
+      document.getElementById('sw-dm').checked = prefs.dm;
+      document.getElementById('sw-online').checked = prefs.online;
+      document.getElementById('sw-cmt').checked = prefs.cmt;
+      document.getElementById('sw-like').checked = prefs.like;
+      document.getElementById('sw-follow').checked = prefs.follow;
+      document.getElementById('sw-sys').checked = prefs.sys;
+
+      // 保存
+      document.getElementById('save-account').addEventListener('click', () => {
+        const newUsername = document.getElementById('s-username').value.trim();
+        const newBio = document.getElementById('s-bio').value.trim();
+        if (!newUsername) {
+          alert('用户名不能为空');
+          return;
+        }
+        me.username = newUsername;
+        me.bio = newBio;
+        writeJSON('cosmic.currentUser', me);
+        const users = readJSON('cosmic.users', []);
+        const idx = users.findIndex(u => u.id === me.id);
+        if (idx >= 0) {
+          users[idx].username = newUsername;
+          users[idx].bio = newBio;
+          writeJSON('cosmic.users', users);
+        }
+        // 同步保存偏好
+        writeJSON('cosmic.prefs', {
+          public: document.getElementById('sw-public').checked,
+          dm: document.getElementById('sw-dm').checked,
+          online: document.getElementById('sw-online').checked,
+          cmt: document.getElementById('sw-cmt').checked,
+          like: document.getElementById('sw-like').checked,
+          follow: document.getElementById('sw-follow').checked,
+          sys: document.getElementById('sw-sys').checked,
+        });
+        showToast('已保存');
+      });
+
+      // 偏好即时保存（不点保存按钮）
+      ['sw-public','sw-dm','sw-online','sw-cmt','sw-like','sw-follow','sw-sys'].forEach(id => {
+        document.getElementById(id).addEventListener('change', () => {
+          writeJSON('cosmic.prefs', {
+            public: document.getElementById('sw-public').checked,
+            dm: document.getElementById('sw-dm').checked,
+            online: document.getElementById('sw-online').checked,
+            cmt: document.getElementById('sw-cmt').checked,
+            like: document.getElementById('sw-like').checked,
+            follow: document.getElementById('sw-follow').checked,
+            sys: document.getElementById('sw-sys').checked,
+          });
+        });
+      });
+
+      // 注销
+      document.getElementById('delete-account').addEventListener('click', () => {
+        if (confirm('⚠️ 确定注销账号？\n\n所有数据将永久删除 · 不可恢复！')) {
+          if (confirm('再确认一次 · 真的注销吗？')) {
+            localStorage.removeItem('cosmic.currentUser');
+            localStorage.removeItem('cosmic.prefs');
+            localStorage.removeItem('cosmic.users');
+            alert('账号已注销 · 回到首页');
+            location.href = './index.html';
+          }
+        }
+      });
+    });
+
+    function showToast(text) {
+      const b = document.createElement('div');
+      b.textContent = text;
+      b.style.cssText = `
+        position: fixed; top: 80px; left: 50%; transform: translateX(-50%);
+        padding: 12px 24px; border-radius: 12px; z-index: 100;
+        background: rgba(107, 217, 104, 0.2); border: 1px solid var(--success);
+        color: var(--fg); font-weight: 600; font-size: 14px;
+        -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);`;
+      document.body.appendChild(b);
+      setTimeout(() => b.remove(), 2500);
+    }
+  </script>
+</body>
+</html>

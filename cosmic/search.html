@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <base href="/cosmic/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>搜索 · AI 未来星域社区</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .search-wrap {
+      max-width: 880px;
+      margin: 0 auto;
+      padding: var(--space-6) var(--space-5) var(--space-9);
+    }
+    .search-bar {
+      position: relative;
+      margin-bottom: var(--space-6);
+    }
+    .search-bar input {
+      width: 100%;
+      padding: 16px 20px 16px 56px;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-xl);
+      -webkit-backdrop-filter: blur(var(--blur));
+      backdrop-filter: blur(var(--blur));
+      color: var(--fg);
+      font-size: 16px;
+      transition: border-color 0.2s ease;
+    }
+    .search-bar input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    .search-bar .icon {
+      position: absolute;
+      left: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 22px;
+      color: var(--fg-mute);
+      pointer-events: none;
+    }
+    .search-meta {
+      color: var(--fg-mute);
+      font-size: 13px;
+      margin-bottom: var(--space-4);
+    }
+    .search-tabs {
+      display: flex;
+      gap: var(--space-2);
+      flex-wrap: wrap;
+      margin-bottom: var(--space-5);
+    }
+    .search-tab {
+      padding: 6px 14px;
+      border-radius: var(--radius);
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      color: var(--fg-mute);
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .search-tab[aria-pressed="true"] {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: var(--bg-0);
+      border-color: transparent;
+      font-weight: 600;
+    }
+    .search-section { margin-bottom: var(--space-6); }
+    .search-section h2 {
+      font-size: 14px;
+      color: var(--fg-mute);
+      margin-bottom: var(--space-3);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .search-results {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+    .search-item {
+      display: flex;
+      gap: var(--space-3);
+      padding: var(--space-4);
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      -webkit-backdrop-filter: blur(var(--blur));
+      backdrop-filter: blur(var(--blur));
+      text-decoration: none;
+      color: var(--fg);
+      transition: border-color 0.2s ease, transform 0.2s ease;
+    }
+    .search-item:hover {
+      border-color: var(--accent);
+      transform: translateX(2px);
+      text-decoration: none;
+    }
+    .search-item .icon {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius);
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+      background: var(--glass-strong);
+      flex-shrink: 0;
+    }
+    .search-item .body { flex: 1; min-width: 0; }
+    .search-item h3 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+    .search-item h3 mark {
+      background: rgba(125, 249, 255, 0.3);
+      color: var(--accent);
+      padding: 0 2px;
+      border-radius: 2px;
+    }
+    .search-item p {
+      color: var(--fg-mute);
+      font-size: 13px;
+    }
+    .search-item p mark {
+      background: rgba(125, 249, 255, 0.2);
+      color: var(--fg);
+      padding: 0 2px;
+      border-radius: 2px;
+    }
+    .search-empty {
+      text-align: center;
+      padding: var(--space-9) var(--space-5);
+      color: var(--fg-mute);
+    }
+    .search-empty .icon { font-size: 48px; opacity: 0.5; margin-bottom: var(--space-3); }
+    .search-empty p { margin-bottom: var(--space-2); }
+    .quick-tips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      margin-top: var(--space-4);
+    }
+    .quick-tip {
+      padding: 6px 12px;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      font-size: 13px;
+      color: var(--fg-mute);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .quick-tip:hover {
+      background: var(--glass-strong);
+      color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+  <div class="canvas-bg" aria-hidden="true">
+    <canvas id="cosmic-canvas"></canvas>
+  </div>
+
+  <header class="site-header">
+    <a href="./index.html" class="brand" aria-label="AI 未来星域社区">
+      <span class="brand-mark">✦</span>
+      <span class="brand-text">AI 未来星域社区</span>
+    </a>
+    <nav class="site-nav" aria-label="主导航">
+      <a href="./index.html">社区</a>
+      <a href="./resource.html">知识</a>
+      <a href="./tools.html">工具</a>
+      <button id="nav-auth" class="btn btn-ghost" type="button">登录</button>
+    </nav>
+  </header>
+
+  <main class="search-wrap">
+    <div class="search-bar">
+      <span class="icon" aria-hidden="true">🔍</span>
+      <input id="q" type="search" placeholder="搜索资源、工具、用户..." autofocus autocomplete="off">
+    </div>
+
+    <div class="quick-tips">
+      <span class="quick-tip" data-q="Prompt">Prompt</span>
+      <span class="quick-tip" data-q="Cursor">Cursor</span>
+      <span class="quick-tip" data-q="Midjourney">Midjourney</span>
+      <span class="quick-tip" data-q="ChatGPT">ChatGPT</span>
+      <span class="quick-tip" data-q="Llama">Llama</span>
+    </div>
+
+    <div class="search-tabs" role="tablist">
+      <button class="search-tab" data-cat="all" aria-pressed="true">全部</button>
+      <button class="search-tab" data-cat="resource" aria-pressed="false">📚 资源</button>
+      <button class="search-tab" data-cat="tool" aria-pressed="false">🛠️ 工具</button>
+      <button class="search-tab" data-cat="user" aria-pressed="false">👤 用户</button>
+    </div>
+
+    <div id="search-meta" class="search-meta" hidden></div>
+    <div id="search-results"></div>
+  </main>
+
+  <footer class="site-footer">
+    <p>✦ AI 未来星域社区 · 搜索</p>
+  </footer>
+
+  <script type="module" src="app.js"></script>
+  <script type="module" src="cosmic-scene.js"></script>
+  <script type="module">
+    // § Mock 全站搜索数据（演示用）
+    const DATA = {
+      resource: [
+        { id: '01', icon: '💬', title: '30+ ChatGPT 提效 Prompt 模板', desc: '从写作到编程，从学习到规划，直接套用。' },
+        { id: '02', icon: '📸', title: 'Stable Diffusion 摄影 Prompt 大全', desc: '真实摄影风格关键词组合（人像/风景/街拍）。' },
+        { id: '03', icon: '🎭', title: 'Midjourney 角色一致性 Prompt 技巧', desc: '多视图角色设计 · 跨场景一致性。' },
+        { id: '04', icon: '🦙', title: 'Llama 3 开源大模型完全指南', desc: '本地部署 + 微调 + 应用案例。' },
+        { id: '06', icon: '⌨️', title: 'Cursor 实战指南 · 写代码 ×10', desc: '从入门到精通 · Composing / Debug / Refactor。' },
+        { id: '07', icon: '🔍', title: 'Perplexity 深度用法 · 替代 Google', desc: 'Pro Search · Focus · Spaces 全攻略。' },
+        { id: '08', icon: '⚡', title: 'n8n + AI 自动化工作流', desc: '把多个 AI 工具串起来，每天省 3 小时。' },
+        { id: '11', icon: '🎨', title: 'AI 生成艺术 Top 100 案例', desc: '从 DALL·E 到 Midjourney · 创意灵感。' },
+        { id: '12', icon: '🎬', title: 'AI 短剧剧本创作实战 30 篇', desc: '结构化提示词 + 完整剧本 · 涵盖都市 / 古风 / 科幻 / 喜剧四大题材。' },
+      ],
+      tool: [
+        { id: 'notion', icon: '📝', title: 'Notion AI', desc: '一体化 AI 写作助手，集成在 Notion 内' },
+        { id: 'midjourney', icon: '🎨', title: 'Midjourney', desc: '顶级 AI 绘画 · 艺术风格最强' },
+        { id: 'cursor', icon: '⌨️', title: 'Cursor', desc: 'AI-first IDE · 写代码效率 ×10' },
+        { id: 'copilot', icon: '🤖', title: 'GitHub Copilot', desc: '行内补全 · 全 IDE 支持' },
+        { id: 'runway', icon: '🎬', title: 'Runway', desc: 'AI 视频生成 · Gen-3 Alpha' },
+        { id: 'perplexity', icon: '🔍', title: 'Perplexity', desc: 'AI 搜索引擎 · 引用来源' },
+        { id: 'chatgpt', icon: '💬', title: 'ChatGPT', desc: 'OpenAI · GPT-4o · 最普及' },
+        { id: 'claude', icon: '✦', title: 'Claude', desc: 'Anthropic · 长文档 · 写作强' },
+        { id: 'gemini', icon: '💎', title: 'Gemini', desc: 'Google · 多模态 · 免费版强' },
+      ],
+      user: [
+        { id: 'u01', name: '星域小编', bio: 'AI 未来星域社区官方账号 · 每天 1 个 AI 灵感' },
+        { id: 'u02', name: '小G军师', bio: '温柔甜美 + 东北老妹儿敞亮 · 写 PRD · 出 idea' },
+        { id: 'u03', name: 'Codex 程序员', bio: 'AI 辅助开发 · 写代码 ×10 · 三件套部署' },
+      ],
+    };
+
+    function escape(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+    function highlight(text, q) {
+      if (!q) return escape(text);
+      const re = new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+      return escape(text).replace(new RegExp(escape(q), 'gi'), '<mark>$1</mark>');
+    }
+
+    let currentQ = '';
+    let currentCat = 'all';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // 读 URL ?q=
+      const params = new URLSearchParams(location.search);
+      const q0 = params.get('q');
+      if (q0) {
+        document.getElementById('q').value = q0;
+        currentQ = q0;
+        render();
+      }
+
+      document.getElementById('q').addEventListener('input', (e) => {
+        currentQ = e.target.value.trim();
+        // 同步 URL ?q=
+        const url = currentQ ? `?q=${encodeURIComponent(currentQ)}` : location.pathname;
+        history.replaceState(null, '', url);
+        render();
+      });
+
+      // Tabs
+      document.querySelectorAll('.search-tab').forEach(t => {
+        t.addEventListener('click', () => {
+          currentCat = t.dataset.cat;
+          document.querySelectorAll('.search-tab').forEach(q => q.setAttribute('aria-pressed', q === t ? 'true' : 'false'));
+          render();
+        });
+      });
+
+      // Quick tips
+      document.querySelectorAll('.quick-tip').forEach(t => {
+        t.addEventListener('click', () => {
+          const q = t.dataset.q;
+          document.getElementById('q').value = q;
+          currentQ = q;
+          render();
+        });
+      });
+    });
+
+    function render() {
+      const results = document.getElementById('search-results');
+      const meta = document.getElementById('search-meta');
+
+      if (!currentQ) {
+        meta.hidden = true;
+        results.innerHTML = `
+          <div class="search-empty">
+            <div class="icon">🔍</div>
+            <p>输入关键词开始搜索</p>
+            <p style="font-size: 13px;">试试上面的热门标签</p>
+          </div>`;
+        return;
+      }
+
+      const matches = {
+        resource: DATA.resource.filter(r =>
+          r.title.toLowerCase().includes(currentQ.toLowerCase()) ||
+          r.desc.toLowerCase().includes(currentQ.toLowerCase())
+        ),
+        tool: DATA.tool.filter(r =>
+          r.title.toLowerCase().includes(currentQ.toLowerCase()) ||
+          r.desc.toLowerCase().includes(currentQ.toLowerCase())
+        ),
+        user: DATA.user.filter(r =>
+          r.name.toLowerCase().includes(currentQ.toLowerCase()) ||
+          r.bio.toLowerCase().includes(currentQ.toLowerCase())
+        ),
+      };
+
+      const total = matches.resource.length + matches.tool.length + matches.user.length;
+      meta.hidden = false;
+      meta.textContent = `找到 ${total} 个匹配「${currentQ}」的结果`;
+
+      if (total === 0) {
+        results.innerHTML = `
+          <div class="search-empty">
+            <div class="icon">✦</div>
+            <p>没找到匹配「${escape(currentQ)}」的结果</p>
+            <p>试试别的关键词 · 或者 <a href="./upload.html">上传一个</a></p>
+          </div>`;
+        return;
+      }
+
+      let html = '';
+      if ((currentCat === 'all' || currentCat === 'resource') && matches.resource.length) {
+        html += `<div class="search-section"><h2>📚 资源 (${matches.resource.length})</h2><div class="search-results">`;
+        html += matches.resource.map(r => `
+          <a class="search-item" href="./resource-detail.html?id=${encodeURIComponent(r.id)}">
+            <div class="icon" aria-hidden="true">${r.icon}</div>
+            <div class="body">
+              <h3>${highlight(r.title, currentQ)}</h3>
+              <p>${highlight(r.desc, currentQ)}</p>
+            </div>
+          </a>
+        `).join('');
+        html += '</div></div>';
+      }
+      if ((currentCat === 'all' || currentCat === 'tool') && matches.tool.length) {
+        html += `<div class="search-section"><h2>🛠️ 工具 (${matches.tool.length})</h2><div class="search-results">`;
+        html += matches.tool.map(r => `
+          <a class="search-item" href="./tools.html#${encodeURIComponent(r.id)}">
+            <div class="icon" aria-hidden="true">${r.icon}</div>
+            <div class="body">
+              <h3>${highlight(r.title, currentQ)}</h3>
+              <p>${highlight(r.desc, currentQ)}</p>
+            </div>
+          </a>
+        `).join('');
+        html += '</div></div>';
+      }
+      if ((currentCat === 'all' || currentCat === 'user') && matches.user.length) {
+        html += `<div class="search-section"><h2>👤 用户 (${matches.user.length})</h2><div class="search-results">`;
+        html += matches.user.map(r => `
+          <a class="search-item" href="#">
+            <div class="icon" aria-hidden="true">${escape(r.name.slice(0,1))}</div>
+            <div class="body">
+              <h3>${highlight(r.name, currentQ)}</h3>
+              <p>${highlight(r.bio, currentQ)}</p>
+            </div>
+          </a>
+        `).join('');
+        html += '</div></div>';
+      }
+      results.innerHTML = html;
+    }
+  </script>
+</body>
+</html>
