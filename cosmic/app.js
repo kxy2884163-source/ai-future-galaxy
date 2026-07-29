@@ -17,6 +17,8 @@
 
 // § 滚动入场动画（阶段 3 增强）
 import { initScrollAnimations } from './anim-up.js';
+// § 3D 鼠标跟随倾斜（阶段 3 增强）
+import { init3DHover } from './hover-3d.js';
 
 // § Supabase client · CDN ESM 一行加载（零构建）
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
@@ -601,6 +603,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // 7.8 滚动入场动画（已通过 import 自动加载）
   initScrollAnimations();
+  init3DHover();
 });
 
 // ==========================================================
