@@ -12,7 +12,7 @@
 
   --fg: #e8e9f3;
   --fg-mute: #9ea4c4;
-  --fg-dim: #6b7099;
+  --fg-dim: #8b91b3;  /* P2 实测：原本 #6b7099 对比度仅 4.1:1 不过 AA · 调到 #8b91b3 ≈ 6.15:1 过 AA · 兼顺“dim”感受 */
 
   --accent: #7df9ff;
   --accent-2: #b388ff;
