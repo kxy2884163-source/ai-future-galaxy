@@ -176,11 +176,7 @@
       { id: 'd02', icon: '🤖', title: 'AI 副业变现路径', desc: '初稿，待补充案例', meta: '3 天前' },
       { id: 'd03', icon: '🎨', title: 'Midjourney 摄影风格速查', desc: '关键词速查表 · 已整理 80%', meta: '上周' },
     ];
-    const MOCK_DRAFTS = [
-      { id: 'd01', icon: '💬', title: 'GPT-4o 创意写作 Prompt', desc: '结构化提示词模板 · 还在打磨措辞', tag: 'Prompt', editedAt: '昨天 21:34' },
-      { id: 'd02', icon: '🤖', title: 'AI 副业变现路径（v0.3）', desc: '初稿 · 待补充案例和数据', tag: 'Insight', editedAt: '3 天前' },
-      { id: 'd03', icon: '🎨', title: 'Midjourney 摄影风格速查', desc: '关键词速查表 · 已整理 80%', tag: 'Prompt', editedAt: '上周' },
-    ];
+    
 
     function readJSON(key, fallback = null) {
       try { return JSON.parse(localStorage.getItem(key) || 'null') ?? fallback; }
