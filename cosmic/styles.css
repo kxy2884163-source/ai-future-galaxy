@@ -94,6 +94,30 @@ img { max-width: 100%; display: block; }
   overflow: hidden;
 }
 
+/* Skip link 键盘效率（按 Tab 第一个触发） */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 1000;
+  padding: 12px 20px;
+  background: var(--bg-0);
+  border: 1px solid var(--accent);
+  border-radius: 0 0 var(--radius) 0;
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: none;
+  transition: left 0.2s ease;
+}
+.skip-link:focus,
+.skip-link:focus-visible {
+  left: 0;
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  text-decoration: none;
+}
+
 /* §4 Canvas 星空背景 */
 .canvas-bg {
   position: fixed;
