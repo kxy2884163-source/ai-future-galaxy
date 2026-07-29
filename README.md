@@ -120,8 +120,58 @@ ai-future-galaxy/
 - [PRD.md](./PRD.md) — 4 模块产品需求
 - [AGENTS.md](./AGENTS.md) — Codex 冷启动包（11 项快照 + 写入规约）
 - [docs/00-知识库索引.md](./docs/00-知识库索引.md) — 架构文档索引
+- [docs/14-vercel-deploy.md](./docs/14-vercel-deploy.md) — Vercel 部署 Quickstart（10 min 公开 URL）
+
+---
+
+## 🚀 部署（10 分钟公开 URL）
+
+完整 Quickstart 走 [docs/14-vercel-deploy.md](./docs/14-vercel-deploy.md) · 这里只列最关键 3 步：
+
+1. **浏览器** → https://vercel.com → **GitHub OAuth 登录**（用 `kxy2884163-source`）
+2. **Add New Project** → 选 `kxy2884163-source/ai-future-galaxy` → **Framework Preset = Other**
+3. **Deploy** → 等 1-2 分钟 → 拿到 `https://ai-future-galaxy.vercel.app`
+
+⚠️ **首次访问 Vercel 会触发 Cloudflare 验证**（手机号 + 验证码）· 一次性 · 验证完就再也不弹。
+
+之后 `git push` 到 master → Vercel **自动部署**（< 30 秒）。
+
+---
+
+## 🧪 本地预览
+
+```bash
+node server.js
+# 访问 http://localhost:8000
+```
+
+或 Windows 一键：`start.bat`
+
+---
+
+## 🎯 端到端测试（部署后 30 秒）
+
+```bash
+# 1. 注册账号
+# 2. 收藏一个资源 → 真实进 Supabase resource_favorites
+# 3. 点赞 → likes
+# 4. 发评论 → comments + trigger 自动发通知
+# 5. 关注 → follows
+# 6. 刷新页面 → 数据仍在
+```
 
 ---
 
 *由小G 在 2026-07-29 沉淀 · 来自 AI 星域项目 v3.0 实战经验 + cosmic/ Phase IV 复盘*
 *项目全称：AI 未来星域社区 · 注册名：AI 星域*
+
+## 📊 当前里程碑（v2.0 · 2026-07-29 21:51）
+
+- ✅ **21 commits** · 全部 push 到 GitHub
+- ✅ **18 页 cosmic/** · a11y 100%
+- ✅ **9 表 schema** 上线 Supabase（资源/评论/点赞/收藏/关注/通知/草稿/用户元数据）
+- ✅ **18 页全部接 Supabase JS SDK** · 端到端可用
+- ✅ **vercel.json + 部署 Quickstart** 已就绪
+- ⏳ Vercel 部署（10 min · 浏览器操作）→ 公开 URL
+- ⏳ Sentry 接入（10 min）
+- ⏳ 真实资源内容录入（100+ 卡）
