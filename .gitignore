@@ -50,3 +50,7 @@ server.out
 server.err
 # Supabase 本地缓存（敏感 · 含连接信息）
 supabase/.temp/
+
+# 环境变量（secret key）
+.env*
+!.env.example
