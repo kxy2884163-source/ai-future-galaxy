@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <base href="/cosmic/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>anime.js v4 Demo · AI 未来星域社区</title>
+  <meta name="description" content="按钮 hover stagger / 卡片 stagger fade-in / Scroll trigger 三合一 demo">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* § Demo 容器 */
+    .demo-wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: var(--space-7) var(--space-5) var(--space-9);
+    }
+    .demo-section {
+      margin-bottom: var(--space-9);
+    }
+    .demo-section > h2 {
+      font-size: 26px;
+      margin-bottom: var(--space-2);
+      color: var(--accent);
+    }
+    .demo-section > p {
+      color: var(--fg-mute);
+      margin-bottom: var(--space-5);
+      font-size: 14px;
+    }
+
+    /* § Demo 1: 按钮 hover stagger */
+    .btn-row {
+      display: flex;
+      gap: var(--space-3);
+      flex-wrap: wrap;
+      padding: var(--space-5);
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      -webkit-backdrop-filter: blur(var(--blur));
+      backdrop-filter: blur(var(--blur));
+    }
+
+    /* § Demo 2: 卡片 stagger fade-in */
+    .demo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: var(--space-4);
+    }
+    .demo-card {
+      padding: var(--space-5);
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      -webkit-backdrop-filter: blur(var(--blur));
+      backdrop-filter: blur(var(--blur));
+      text-align: center;
+    }
+    .demo-card .num {
+      font-size: 36px;
+      font-weight: 800;
+      color: var(--accent);
+      line-height: 1.1;
+      margin-bottom: var(--space-2);
+      font-variant-numeric: tabular-nums;
+    }
+    .demo-card h3 {
+      font-size: 14px;
+      color: var(--fg-mute);
+      font-weight: 500;
+    }
+
+    /* § Demo 3: Scroll trigger */
+    .scroll-trigger {
+      padding: var(--space-7);
+      margin: var(--space-6) 0;
+      background: linear-gradient(135deg,
+        rgba(125, 249, 255, 0.12),
+        rgba(179, 136, 255, 0.12));
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      -webkit-backdrop-filter: blur(var(--blur));
+      backdrop-filter: blur(var(--blur));
+      text-align: center;
+    }
+    .scroll-trigger .glyph {
+      font-size: 48px;
+      margin-bottom: var(--space-3);
+      filter: drop-shadow(0 0 8px rgba(125, 249, 255, 0.4));
+    }
+    .scroll-trigger p {
+      font-size: 18px;
+      color: var(--fg);
+      font-weight: 600;
+    }
+
+    /* § 初始隐藏 — JS 触发后显示 */
+    .anim-fade { opacity: 0; }
+    .anim-up { opacity: 0; transform: translateY(20px); }
+
+    /* § Hero 标题 */
+    .demo-hero {
+      text-align: center;
+      margin-bottom: var(--space-8);
+    }
+    .demo-hero h1 {
+      font-size: clamp(32px, 5vw, 56px);
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: var(--space-3);
+    }
+    .demo-hero p {
+      color: var(--fg-mute);
+      font-size: 16px;
+    }
+
+    /* § back link */
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      margin-bottom: var(--space-5);
+      color: var(--fg-mute);
+      font-size: 14px;
+    }
+    .back-link:hover { color: var(--accent); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="canvas-bg" aria-hidden="true">
+    <canvas id="cosmic-canvas"></canvas>
+  </div>
+
+  <header class="site-header">
+    <a href="./index.html" class="brand" aria-label="AI 未来星域社区">
+      <span class="brand-mark">✦</span>
+      <span class="brand-text">AI 未来星域社区</span>
+    </a>
+    <nav class="site-nav" aria-label="主导航">
+      <a href="./index.html">社区</a>
+      <a href="./resource.html">知识</a>
+      <a href="./tools.html">工具</a>
+    </nav>
+  </header>
+
+  <main class="demo-wrap">
+    <a href="./index.html" class="back-link">← 返回首页</a>
+
+    <div class="demo-hero">
+      <h1 class="anim-fade">✦ anime.js v4 Demo</h1>
+      <p class="anim-fade">按钮 hover stagger · 卡片 stagger fade-in · Scroll trigger 三合一</p>
+    </div>
+
+    <!-- Demo 1: 按钮 hover stagger -->
+    <section class="demo-section">
+      <h2>① 按钮 hover stagger</h2>
+      <p>鼠标进入按钮行 → 逐个递进抖动</p>
+      <div class="btn-row" id="btn-row">
+        <button class="btn btn-primary anim-fade" type="button">主按钮 1</button>
+        <button class="btn btn-ghost anim-fade" type="button">次按钮 2</button>
+        <button class="btn btn-ghost anim-fade" type="button">次按钮 3</button>
+        <button class="btn btn-primary anim-fade" type="button">主按钮 4</button>
+        <button class="btn btn-ghost anim-fade" type="button">次按钮 5</button>
+      </div>
+    </section>
+
+    <!-- Demo 2: 卡片 stagger fade-in -->
+    <section class="demo-section">
+      <h2>② 卡片 stagger fade-in + 数字滚动</h2>
+      <p>页面加载后逐个浮现，数字从 0 滚动到目标值</p>
+      <div class="demo-grid" id="demo-grid">
+        <div class="demo-card anim-up">
+          <div class="num" data-count="1800">0</div>
+          <h3>远景星</h3>
+        </div>
+        <div class="demo-card anim-up">
+          <div class="num" data-count="650">0</div>
+          <h3>中景星</h3>
+        </div>
+        <div class="demo-card anim-up">
+          <div class="num" data-count="180">0</div>
+          <h3>近景星</h3>
+        </div>
+        <div class="demo-card anim-up">
+          <div class="num" data-count="3">0</div>
+          <h3>行星</h3>
+        </div>
+      </div>
+    </section>
+
+    <!-- Demo 3: Scroll trigger -->
+    <section class="demo-section">
+      <h2>③ Scroll Trigger</h2>
+      <p>滚动到视口才触发动画（默认 out 视口淡出）</p>
+
+      <div class="scroll-trigger anim-up" data-st-trigger>
+        <div class="glyph">✦</div>
+        <p>第一个 trigger · 向下滚动试试</p>
+      </div>
+
+      <div class="scroll-trigger anim-up" data-st-trigger style="margin-top: 60vh;">
+        <div class="glyph">🌟</div>
+        <p>第二个 trigger</p>
+      </div>
+
+      <div class="scroll-trigger anim-up" data-st-trigger style="margin-top: 60vh;">
+        <div class="glyph">🚀</div>
+        <p>第三个 trigger · 继续往下滚</p>
+      </div>
+    </section>
+
+    <p style="text-align: center; color: var(--fg-dim); margin-top: var(--space-9);">
+      喜欢的话 → 在首页 index.html 集成同样的入场动画
+    </p>
+  </main>
+
+  <footer class="site-footer">
+    <p>✦ AI 未来星域社区 · anime.js v4 · CDN ESM · 30KB gzip</p>
+  </footer>
+
+  <script type="module" src="app.js"></script>
+  <script type="module" src="cosmic-scene.js"></script>
+  <script type="module">
+    // § anime.js v4 CDN ESM import
+    //   - docs/08 § 按需架构选择 / jsDelivr ESM
+    //   - 跟 cosmic-scene.js 一样从 unpkg 走 ESM，零构建
+    //
+    // § Failsafe：如果 1.5s 内 anime.js 没初始化（CDN 挂了 / import 失败）
+    //   → 显示所有元素，避免 demo 页死白
+    let __animeInitialized = false;
+    setTimeout(() => {
+      if (!__animeInitialized) {
+        document.querySelectorAll('.anim-fade, .anim-up').forEach((el) => {
+          el.style.opacity = '1';
+          el.style.transform = 'none';
+        });
+        document.querySelectorAll('#demo-grid .num').forEach((el) => {
+          el.textContent = el.dataset.count;
+        });
+      }
+    }, 1500);
+
+    import {
+      animate,
+      stagger,
+      onScroll,
+    } from 'https://cdn.jsdelivr.net/npm/animejs@4.0.0/dist/animejs.esm.min.js';
+
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // § reduced-motion fallback
+    __animeInitialized = true;
+    if (reduceMotion) {
+      document.querySelectorAll('.anim-fade, .anim-up').forEach((el) => {
+        el.style.opacity = '1';
+        el.style.transform = 'none';
+      });
+      // 直接给数字填目标值
+      document.querySelectorAll('#demo-grid .num').forEach((el) => {
+        el.textContent = el.dataset.count;
+      });
+    } else {
+      __animeInitialized = true;
+      // 1. Hero 标题 + 副标题 stagger 淡入
+      animate('.demo-hero .anim-fade', {
+        opacity: [0, 1],
+        translateY: [16, 0],
+        duration: 800,
+        delay: stagger(120),
+        ease: 'outQuad',
+      });
+
+      // 2. Demo 1 按钮行：自身入场 stagger
+      animate('#btn-row .anim-fade', {
+        opacity: [0, 1],
+        scale: [0.85, 1],
+        duration: 700,
+        delay: stagger(80, { start: 200 }),
+        ease: 'outBack',
+      });
+
+      // 3. Demo 2 卡片 stagger up
+      animate('#demo-grid .anim-up', {
+        opacity: [0, 1],
+        translateY: [24, 0],
+        duration: 750,
+        delay: stagger(130, { start: 350 }),
+        ease: 'outCubic',
+      });
+
+      // 4. 数字滚动（innerHTML 动画 + round）
+      animate('#demo-grid .num', {
+        innerHTML: [0, (el) => +el.dataset.count],
+        round: 1,
+        duration: 1600,
+        delay: stagger(150, { start: 600 }),
+        ease: 'outExpo',
+      });
+
+      // 5. Demo 3 scroll trigger — 默认隐藏，等滚到视口再触发
+      animate('[data-st-trigger]', {
+        opacity: [0, 1],
+        translateY: [40, 0],
+        scale: [0.94, 1],
+        duration: 900,
+        ease: 'outCubic',
+      });
+
+      // 6. 按钮行 hover stagger（鼠标进入时抖动）
+      const btnRow = document.getElementById('btn-row');
+      if (btnRow) {
+        btnRow.addEventListener('mouseenter', () => {
+          animate(btnRow.querySelectorAll('.btn'), {
+            scale: [1, 1.1, 1],
+            duration: 700,
+            delay: stagger(60),
+            ease: 'inOutQuad',
+          });
+        });
+      }
+
+      // 7. onScroll（v4 API）— 出视口淡出
+      document.querySelectorAll('[data-st-trigger]').forEach((el) => {
+        try {
+          onScroll({
+            target: el,
+            enter: 'bottom-=10 top',
+            leave: 'top bottom+=10',
+            onLeave: () => {
+              animate(el, {
+                opacity: [1, 0.3],
+                duration: 400,
+                ease: 'outQuad',
+              });
+            },
+            onEnterBack: () => {
+              animate(el, {
+                opacity: [0.3, 1],
+                duration: 600,
+                ease: 'outQuad',
+              });
+            },
+          });
+        } catch (e) {
+          console.warn('onScroll failed:', e);
+        }
+      });
+    }
+  </script>
+</body>
+</html>

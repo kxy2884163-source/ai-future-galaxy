@@ -29,11 +29,11 @@
 
   <main class="hero-wrap">
     <section class="hero">
-      <h1 class="hero-title">
+      <h1 class="hero-title anim-fade">
         <span class="hero-accent" aria-hidden="true">✦</span>
         AI 未来星域社区
       </h1>
-      <p class="hero-sub">让孤独学习变成一起玩着学 · 把信息爆炸压成打开就能用</p>
+      <p class="hero-sub anim-fade">让孤独学习变成一起玩着学 · 把信息爆炸压成打开就能用</p>
     </section>
 
     <section class="modules" aria-label="4 大模块入口">
@@ -73,5 +73,34 @@
 
   <script type="module" src="app.js"></script>
   <script type="module" src="cosmic-scene.js"></script>
+  <script type="module">
+    // § anime.js v4 集成 — Hero + 模块卡片入场动画
+    //   - CDN ESM (jsDelivr) · 30KB gzip · 跟 cosmic-scene.js 同一套 import 风格
+    //   - 尊重 prefers-reduced-motion
+    import { animate, stagger } from 'https://cdn.jsdelivr.net/npm/animejs@4.0.0/dist/animejs.esm.min.js';
+
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (!reduceMotion) {
+      // Hero 标题 + 副标题 stagger 淡入
+      animate('.hero .anim-fade', {
+        opacity: [0, 1],
+        translateY: [20, 0],
+        duration: 900,
+        delay: stagger(140, { start: 200 }),
+        ease: 'outQuad',
+      });
+
+      // 4 模块卡片 stagger up
+      animate('.modules .module-card', {
+        opacity: [0, 1],
+        translateY: [32, 0],
+        scale: [0.96, 1],
+        duration: 800,
+        delay: stagger(110, { start: 500 }),
+        ease: 'outCubic',
+      });
+    }
+  </script>
 </body>
 </html>
