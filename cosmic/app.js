@@ -21,6 +21,12 @@ import { initScrollAnimations } from './anim-up.js';
 import { init3DHover } from './hover-3d.js';
 // § 按钮 ripple 粒子（阶段 3 增强）
 import { initRipple } from './ripple.js';
+// § 星空流星（阶段 3 增强）
+import { initMeteors } from './meteors.js';
+// § Hero 标题 stagger 文字动画（阶段 3 增强）
+import { initHeroTitle } from './hero-title.js';
+// § 登录成功 confetti（阶段 3 增强）
+import { initConfetti } from './confetti.js';
 
 // § Supabase client · CDN ESM 一行加载（零构建）
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
@@ -607,6 +613,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   initScrollAnimations();
   init3DHover();
   initRipple();
+  initMeteors();
+  initHeroTitle();
+  initConfetti();
 });
 
 // ==========================================================
