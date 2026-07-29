@@ -1,0 +1,31 @@
+# AI 未来星域社区 · robots.txt
+# https://ai-future-galaxy.vercel.app
+# 2026-07-29
+
+User-agent: *
+Allow: /
+Disallow: /cosmic/cosmic/  # 防止 double-cosmic 路径被索引
+Disallow: /*?*  # 避免 query 参数被无限索引
+
+# 主流搜索引擎
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Slurp  # Yahoo
+Allow: /
+
+# AI 爬虫（适度欢迎）
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+# Sitemap 位置
+Sitemap: https://ai-future-galaxy.vercel.app/sitemap.xml
