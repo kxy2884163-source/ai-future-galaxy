@@ -5,7 +5,7 @@
   <base href="/cosmic/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 rx=%2218%22 fill=%22%230a0a1a%22/%3E%3Ctext x=%2250%22 y=%2272%22 font-size=%2270%22 text-anchor=%22middle%22 fill=%22%237df9ff%22 font-family=%22sans-serif%22%3E%E2%9C%A6%3C/text%3E%3C/svg%3E">
-  <title>AI 未来星域社区 · Galaxy</title>
+  <title>AI 未来星域社区 · Galaxy Edition</title>
   <meta name="description" content="让孤独学习变成一起玩着学 · 把信息爆炸压成打开就能用。AI 爱好者 4 大模块：社交页面 / 知识分享 / 常用插件工具 / AI 在线使用。">
   <meta name="keywords" content="AI, 人工智能, AI 社区, AI 知识, AI 工具, Prompt, Machine Learning, 大模型">
   <meta name="author" content="AI 未来星域社区">
@@ -25,9 +25,14 @@
   <link rel="canonical" href="https://ai-future-galaxy.vercel.app/">
   <link rel="stylesheet" href="styles.css">
   <style>
-    /* § Homepage Galaxy 风格 */
-    body { background: #050510; }
-    .home-hero {
+    /* ==========================================================
+       AI 未来星域社区 · Galaxy Edition v2
+       2026-07-29 23:03 · 灵感自 Awwwards / Godly / SpaceX
+       ========================================================== */
+    body { background: #050510; overflow-x: hidden; }
+
+    /* § 第一屏 · 全屏沉浸 */
+    .galaxy-hero {
       position: relative;
       min-height: 100vh;
       display: flex;
@@ -37,98 +42,140 @@
       padding: var(--space-8) var(--space-5);
       overflow: hidden;
     }
-    .home-hero canvas {
+    .galaxy-hero canvas {
       position: absolute;
       inset: 0;
       z-index: 0;
-      pointer-events: auto;  /* 鼠标磁场 */
     }
-    .home-hero .layer {
+    .galaxy-hero .layer {
       position: relative;
       z-index: 2;
       text-align: center;
       max-width: 1100px;
       margin: 0 auto;
     }
-    .home-hero .hero-mark {
-      font-size: clamp(13px, 2vw, 16px);
-      letter-spacing: 0.2em;
+    .galaxy-hero .badge {
+      display: inline-block;
+      padding: 6px 16px;
+      margin-bottom: var(--space-5);
+      font-size: 11px;
+      letter-spacing: 0.3em;
       color: var(--accent);
       font-weight: 700;
       text-transform: uppercase;
-      margin-bottom: var(--space-4);
-      opacity: 0.85;
+      border: 1px solid var(--accent);
+      border-radius: 40px;
+      background: rgba(125, 249, 255, 0.05);
+      letter-spacing: 0.4em;
     }
-    .home-hero h1 {
-      font-size: clamp(40px, 8vw, 96px);
+    .galaxy-hero h1 {
+      font-size: clamp(56px, 12vw, 160px);
       font-weight: 900;
-      line-height: 1.0;
-      letter-spacing: -0.03em;
-      background: linear-gradient(135deg, #fff 0%, var(--accent) 50%, var(--accent-2) 100%);
+      line-height: 0.95;
+      letter-spacing: -0.04em;
+      background: linear-gradient(180deg, #fff 0%, var(--accent) 50%, var(--accent-2) 100%);
       -webkit-background-clip: text;
       background-clip: text;
       -webkit-text-fill-color: transparent;
-      margin-bottom: var(--space-4);
-      filter: drop-shadow(0 0 24px rgba(125, 249, 255, 0.3));
+      margin-bottom: var(--space-5);
+      filter: drop-shadow(0 0 60px rgba(125, 249, 255, 0.4));
+      word-break: keep-all;
     }
-    .home-hero .sub {
-      font-size: clamp(15px, 1.6vw, 19px);
+    .galaxy-hero .sub {
+      font-size: clamp(15px, 1.8vw, 20px);
       color: var(--fg-mute);
-      margin-bottom: var(--space-7);
-      max-width: 600px;
+      margin-bottom: var(--space-8);
+      max-width: 640px;
       margin-left: auto;
       margin-right: auto;
+      line-height: 1.6;
     }
-    /* 标签云（散布模块入口） */
-    .tag-cloud {
+    .galaxy-hero .sub .accent { color: var(--accent); }
+
+    /* § 浮动模块标签（hover 放大） */
+    .float-tags {
       display: flex;
       flex-wrap: wrap;
       gap: var(--space-3);
       justify-content: center;
-      max-width: 720px;
+      max-width: 760px;
       margin: 0 auto var(--space-7);
     }
-    .tag-chip {
+    .float-tag {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 8px 16px;
-      background: var(--glass);
-      border: 1px solid var(--glass-border);
-      border-radius: 40px;
+      gap: 8px;
+      padding: 10px 20px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 80px;
       color: var(--fg);
       font-size: 13px;
       font-weight: 500;
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      transition: all 0.3s ease;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
       text-decoration: none;
       cursor: pointer;
+      will-change: transform;
     }
-    .tag-chip:hover {
+    .float-tag:hover {
       background: rgba(125, 249, 255, 0.15);
       border-color: var(--accent);
       color: var(--accent);
-      transform: translateY(-2px) scale(1.05);
-      box-shadow: 0 6px 20px rgba(125, 249, 255, 0.3);
+      transform: translateY(-4px) scale(1.05);
+      box-shadow: 0 12px 32px rgba(125, 249, 255, 0.35);
     }
-    .tag-chip .icon { font-size: 15px; }
-    .tag-chip .count { color: var(--fg-dim); font-size: 11px; }
-    /* CTA */
-    .hero-actions {
+    .float-tag .icon { font-size: 16px; }
+    .float-tag .count { color: var(--fg-dim); font-size: 11px; }
+
+    /* § CTA 按钮 */
+    .hero-cta {
       display: flex;
       gap: var(--space-3);
       justify-content: center;
       flex-wrap: wrap;
     }
+    .btn-hero-primary {
+      padding: 14px 32px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: var(--bg-0);
+      border-radius: 80px;
+      font-weight: 700;
+      font-size: 15px;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      box-shadow: 0 8px 24px rgba(125, 249, 255, 0.4);
+    }
+    .btn-hero-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 16px 40px rgba(125, 249, 255, 0.5);
+    }
+    .btn-hero-ghost {
+      padding: 14px 28px;
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 80px;
+      color: var(--fg);
+      font-size: 15px;
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+    .btn-hero-ghost:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* § 滚动提示 */
     .hint-scroll {
       position: absolute;
-      bottom: var(--space-6);
+      bottom: var(--space-7);
       left: 50%;
       transform: translateX(-50%);
       color: var(--fg-dim);
-      font-size: 12px;
-      letter-spacing: 0.2em;
+      font-size: 11px;
+      letter-spacing: 0.3em;
       text-transform: uppercase;
       animation: hint-bounce 2s ease-in-out infinite;
       z-index: 2;
@@ -137,75 +184,180 @@
       0%, 100% { transform: translate(-50%, 0); opacity: 0.5; }
       50% { transform: translate(-50%, 8px); opacity: 1; }
     }
-    /* § 滚动后第二屏 */
-    .feature-section {
+
+    /* § 第二屏 · 数字滚动 */
+    .stats-section {
       max-width: 1080px;
       margin: 0 auto;
       padding: var(--space-9) var(--space-5);
       position: relative;
       z-index: 2;
     }
-    .feature-section h2 {
-      font-size: clamp(28px, 4vw, 42px);
-      font-weight: 800;
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: var(--space-4);
+      margin-bottom: var(--space-9);
+    }
+    .stat-card {
+      padding: var(--space-6) var(--space-4);
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: var(--radius-lg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       text-align: center;
+      transition: transform 0.4s ease, border-color 0.3s ease;
+    }
+    .stat-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--accent);
+    }
+    .stat-number {
+      font-size: clamp(36px, 5vw, 56px);
+      font-weight: 900;
+      line-height: 1;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: var(--space-2);
+      font-variant-numeric: tabular-nums;
+    }
+    .stat-label {
+      font-size: 13px;
+      color: var(--fg-mute);
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+    }
+
+    /* § 第三屏 · 4 模块详细介绍 */
+    .features-section {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: var(--space-9) var(--space-5);
+      position: relative;
+      z-index: 2;
+    }
+    .features-head {
+      text-align: center;
+      margin-bottom: var(--space-8);
+    }
+    .features-head h2 {
+      font-size: clamp(36px, 5vw, 64px);
+      font-weight: 900;
       margin-bottom: var(--space-3);
       background: linear-gradient(135deg, var(--accent), var(--accent-2));
       -webkit-background-clip: text;
       background-clip: text;
       -webkit-text-fill-color: transparent;
     }
-    .feature-section .lead {
-      text-align: center;
+    .features-head .lead {
       color: var(--fg-mute);
-      margin-bottom: var(--space-7);
-      font-size: 16px;
+      font-size: clamp(15px, 1.6vw, 18px);
     }
-    .feature-grid {
+    .features-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
       gap: var(--space-5);
     }
     .feature-card {
-      padding: var(--space-6);
-      background: var(--glass);
-      border: 1px solid var(--glass-border);
+      position: relative;
+      padding: var(--space-7) var(--space-5);
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: var(--radius-lg);
-      backdrop-filter: blur(var(--blur));
-      -webkit-backdrop-filter: blur(var(--blur));
-      transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.4s ease, border-color 0.3s ease;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.5s ease, border-color 0.3s ease;
       transform-style: preserve-3d;
+      will-change: transform;
     }
     .feature-card:hover {
-      transform: translateY(-6px) scale(1.02) rotateX(1.5deg);
-      box-shadow: 0 20px 50px rgba(125, 249, 255, 0.22);
+      transform: translateY(-8px) scale(1.02) rotateX(2deg);
+      box-shadow: 0 24px 60px rgba(125, 249, 255, 0.25);
       border-color: var(--accent);
     }
+    .feature-card .glow {
+      position: absolute;
+      inset: 0;
+      border-radius: var(--radius-lg);
+      background: linear-gradient(135deg, transparent, rgba(125, 249, 255, 0.15), transparent);
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      pointer-events: none;
+    }
+    .feature-card:hover .glow { opacity: 1; }
     .feature-card .icon {
-      font-size: 48px;
+      font-size: 56px;
       margin-bottom: var(--space-3);
-      filter: drop-shadow(0 0 12px rgba(125, 249, 255, 0.4));
+      filter: drop-shadow(0 0 16px rgba(125, 249, 255, 0.5));
     }
     .feature-card h3 {
-      font-size: 20px;
-      font-weight: 700;
-      margin-bottom: var(--space-2);
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: var(--space-3);
     }
     .feature-card p {
       color: var(--fg-mute);
       font-size: 14px;
       line-height: 1.6;
+      margin-bottom: var(--space-4);
     }
     .feature-card a {
       color: var(--accent);
       font-size: 13px;
-      margin-top: var(--space-3);
-      display: inline-block;
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
     }
+    .feature-card a:hover { text-decoration: underline; }
+
+    /* § 第四屏 · 宇宙感 footer */
+    .cosmic-footer {
+      padding: var(--space-9) var(--space-5) var(--space-7);
+      text-align: center;
+      position: relative;
+      z-index: 2;
+    }
+    .cosmic-footer .skyline {
+      font-size: clamp(28px, 4vw, 48px);
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: var(--space-5);
+      letter-spacing: -0.02em;
+    }
+    .cosmic-footer .footer-tags {
+      display: flex;
+      gap: var(--space-3);
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: var(--space-5);
+    }
+    .cosmic-footer .footer-tag {
+      padding: 4px 12px;
+      font-size: 11px;
+      color: var(--fg-dim);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    .cosmic-footer .copyright {
+      font-size: 13px;
+      color: var(--fg-dim);
+    }
+
     @media (max-width: 640px) {
-      .home-hero { min-height: 90vh; padding: var(--space-6) var(--space-4); }
-      .tag-cloud { gap: 8px; }
-      .tag-chip { font-size: 12px; padding: 6px 12px; }
+      .galaxy-hero { min-height: 90vh; padding: var(--space-6) var(--space-4); }
+      .float-tags { gap: 8px; }
+      .float-tag { font-size: 12px; padding: 8px 14px; }
+      .feature-card { padding: var(--space-6) var(--space-4); }
     }
   </style>
 </head>
@@ -229,60 +381,91 @@
   </header>
 
   <main id="main-content">
-    <!-- § 第一屏 · 银河 + 标签云 -->
-    <section class="home-hero">
-      <div class="layer">
-        <p class="hero-mark anim-up">✦ WELCOME TO THE GALAXY ✦</p>
-        <h1 class="hero-title-anim anim-up">AI 未来星域社区</h1>
-        <p class="sub anim-up">让孤独学习变成一起玩着学 · 把信息爆炸压成打开就能用</p>
 
-        <div class="tag-cloud anim-up">
-          <a class="tag-chip" href="./dashboard.html"><span class="icon">🌟</span>社交页面 <span class="count">· 找同好</span></a>
-          <a class="tag-chip" href="./resource.html"><span class="icon">📚</span>AI 知识分享 <span class="count">· 教程 / 案例</span></a>
-          <a class="tag-chip" href="./tools.html"><span class="icon">🛠️</span>常用插件工具 <span class="count">· 一键直跳</span></a>
-          <a class="tag-chip" href="./upload.html"><span class="icon">🤖</span>AI 在线使用 <span class="count">· 打开即用</span></a>
-          <a class="tag-chip" href="./search.html"><span class="icon">🔍</span>搜索</a>
-          <a class="tag-chip" href="./me.html"><span class="icon">👥</span>关注</a>
-          <a class="tag-chip" href="./favorites.html"><span class="icon">★</span>我的收藏</a>
-          <a class="tag-chip" href="./notifications.html"><span class="icon">🔔</span>通知</a>
-          <a class="tag-chip" href="./drafts.html"><span class="icon">📝</span>草稿</a>
-          <a class="tag-chip" href="./settings.html"><span class="icon">⚙️</span>设置</a>
+    <!-- § 第一屏 · Galaxy Hero -->
+    <section class="galaxy-hero">
+      <div class="layer">
+        <span class="badge">✦ WELCOME TO THE GALAXY ✦</span>
+        <h1>AI 未来星域社区</h1>
+        <p class="sub">
+          让孤独学习变成一起玩着学 · 把<span class="accent">信息爆炸</span>压成打开就能用
+        </p>
+
+        <div class="float-tags">
+          <a class="float-tag" href="./dashboard.html"><span class="icon">🌟</span>社交页面 <span class="count">· 找同好</span></a>
+          <a class="float-tag" href="./resource.html"><span class="icon">📚</span>AI 知识分享 <span class="count">· 教程/案例</span></a>
+          <a class="float-tag" href="./tools.html"><span class="icon">🛠️</span>插件工具 <span class="count">· 一键直跳</span></a>
+          <a class="float-tag" href="./upload.html"><span class="icon">🤖</span>AI 在线 <span class="count">· 免安装</span></a>
+          <a class="float-tag" href="./search.html"><span class="icon">🔍</span>搜索</a>
+          <a class="float-tag" href="./me.html"><span class="icon">👥</span>关注</a>
+          <a class="float-tag" href="./favorites.html"><span class="icon">★</span>收藏</a>
+          <a class="float-tag" href="./notifications.html"><span class="icon">🔔</span>通知</a>
+          <a class="float-tag" href="./drafts.html"><span class="icon">📝</span>草稿</a>
+          <a class="float-tag" href="./settings.html"><span class="icon">⚙️</span>设置</a>
         </div>
 
-        <div class="hero-actions anim-up">
-          <a href="./register.html" class="btn btn-primary">立即注册</a>
-          <a href="./resource.html" class="btn btn-ghost">浏览资源 →</a>
+        <div class="hero-cta">
+          <a href="./register.html" class="btn-hero-primary">立即注册</a>
+          <a href="./resource.html" class="btn-hero-ghost">浏览资源 →</a>
         </div>
       </div>
 
-      <p class="hint-scroll">↓ 向下滚动 ↓</p>
+      <p class="hint-scroll">↓ 向 下 滚 动 ↓</p>
     </section>
 
-    <!-- § 第二屏 · 4 核心模块详细介绍 -->
-    <section class="feature-section">
-      <h2>4 大核心模块</h2>
-      <p class="lead">每一个模块都解决 AI 爱好者路上的一个核心痛点</p>
+    <!-- § 第二屏 · 数字滚动 -->
+    <section class="stats-section">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-number" data-count="1280">0</div>
+          <div class="stat-label">资源数量</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" data-count="642">0</div>
+          <div class="stat-label">活跃社区</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" data-count="18">0</div>
+          <div class="stat-label">精选工具</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" data-count="9260">0</div>
+          <div class="stat-label">学习访问</div>
+        </div>
+      </div>
+    </section>
 
-      <div class="feature-grid">
+    <!-- § 第三屏 · 4 大模块详细介绍 -->
+    <section class="features-section">
+      <header class="features-head">
+        <h2>4 大核心模块</h2>
+        <p class="lead">每一个模块都解决 AI 爱好者路上的一个核心痛点</p>
+      </header>
+
+      <div class="features-grid">
         <div class="feature-card">
+          <div class="glow"></div>
           <div class="icon">🌟</div>
           <h3>社交页面</h3>
           <p>找同好 · 组圈子 · 评论交流 · 私信互动 · 一个人研究 AI 太枯燥 · 找到志同道合的人</p>
           <a href="./dashboard.html">进入社区 →</a>
         </div>
         <div class="feature-card">
+          <div class="glow"></div>
           <div class="icon">📚</div>
           <h3>AI 知识分享</h3>
           <p>结构化资源中心 · 教程 · 案例 · 模型 · 工具 · 数据集 · 灵感 · 解决知识获取困难</p>
           <a href="./resource.html">浏览资源 →</a>
         </div>
         <div class="feature-card">
+          <div class="glow"></div>
           <div class="icon">🛠️</div>
           <h3>常用插件工具</h3>
           <p>收敛碎片 AI 工具到一个入口 · 一键直跳 · 收藏常用 · 解决信息源过于复杂</p>
           <a href="./tools.html">查看工具 →</a>
         </div>
         <div class="feature-card">
+          <div class="glow"></div>
           <div class="icon">🤖</div>
           <h3>AI 在线使用</h3>
           <p>打开就能用 · 免安装免部署 · 任务模板 + 多模型选择 · 一站式 AI 体验</p>
@@ -291,38 +474,50 @@
       </div>
     </section>
 
-    <footer class="site-footer">
-      <p>✦ AI 未来星域社区 · 让孤独学习变成一起玩着学</p>
+    <!-- § 第四屏 · 宇宙感 footer -->
+    <footer class="cosmic-footer">
+      <p class="skyline">✦ AI 未来星域社区 ✦</p>
+      <div class="footer-tags">
+        <span class="footer-tag">Prompt</span>
+        <span class="footer-tag">Model</span>
+        <span class="footer-tag">Tool</span>
+        <span class="footer-tag">Dataset</span>
+        <span class="footer-tag">Web3</span>
+        <span class="footer-tag">Computation</span>
+        <span class="footer-tag">Knowledge</span>
+        <span class="footer-tag">AI</span>
+      </div>
+      <p class="copyright">让孤独学习变成一起玩着学 · 33 commits · Galaxy Edition</p>
     </footer>
   </main>
 
   <script type="module" src="app.js"></script>
   <script type="module" src="galaxy-scene.js"></script>
+  <script type="module" src="counter.js"></script>
   <script type="module">
-    // § Hero 标题字符动画（hero-title.js 失败时 fallback）
+    // § Hero 标题字符 stagger（fallback）
     import { animate, stagger } from 'https://cdn.jsdelivr.net/npm/animejs@4.0.0/dist/animejs.esm.min.js';
-
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (!reduce) {
-      const title = document.querySelector('.hero-title-anim');
-      if (title) {
-        // 把标题内容按字符拆成 span
-        const text = title.textContent;
-        title.innerHTML = '';
+      const h1 = document.querySelector('.galaxy-hero h1');
+      if (h1) {
+        const text = h1.textContent;
+        h1.innerHTML = '';
         [...text].forEach((ch) => {
           const s = document.createElement('span');
           s.className = 'char';
           s.textContent = ch === ' ' ? '\u00A0' : ch;
           s.style.display = 'inline-block';
           s.style.opacity = '0';
-          s.style.transform = 'translateY(20px)';
-          title.appendChild(s);
+          s.style.transform = 'translateY(30px)';
+          h1.appendChild(s);
         });
-        animate(title.querySelectorAll('.char'), {
+        animate('.galaxy-hero h1 .char', {
           opacity: [0, 1],
-          translateY: [20, 0],
+          translateY: [30, 0],
+          scale: [0.9, 1],
           duration: 800,
-          delay: stagger(40),
+          delay: stagger(60),
           ease: 'outCubic',
         });
       }
