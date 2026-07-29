@@ -25,6 +25,8 @@ import { initRipple } from './ripple.js';
 import { initMeteors } from './meteors.js';
 // § Hero 标题 stagger 文字动画（阶段 3 增强）
 import { initHeroTitle } from './hero-title.js';
+// § 页面切换 View Transitions API（Chrome 111+）
+import { initViewTransitions } from './view-transition.js';
 // § 登录成功 confetti（阶段 3 增强）
 import { initConfetti } from './confetti.js';
 
@@ -616,6 +618,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initMeteors();
   initHeroTitle();
   initConfetti();
+  initViewTransitions();
 });
 
 // ==========================================================

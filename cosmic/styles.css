@@ -255,6 +255,59 @@ img { max-width: 100%; display: block; }
   text-align: center;
   margin-bottom: var(--space-8);
 }
+/* §15f 页面切换 View Transitions API（Chrome 111+） */
+@view-transition {
+  navigation: auto;
+}
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.35s;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+::view-transition-old(root) {
+  animation-name: fade-out-scale;
+}
+::view-transition-new(root) {
+  animation-name: fade-in-scale;
+}
+@keyframes fade-out-scale {
+  to {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+@keyframes fade-in-scale {
+  from {
+    opacity: 0;
+    transform: scale(1.04);
+  }
+}
+
+/* §15g 通知 toast slide-in（已有 banner 增强） */
+#cosmic-banner {
+  animation: banner-slide-in 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+@keyframes banner-slide-in {
+  from {
+    transform: translate(-50%, -20px);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+}
+
+
+.hero-wrap {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-6) var(--space-9);
+}
+.hero {
+  text-align: center;
+  margin-bottom: var(--space-8);
+}
 .hero-title {
   font-size: clamp(36px, 7vw, 72px);
   font-weight: 800;
