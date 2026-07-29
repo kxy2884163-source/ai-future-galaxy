@@ -281,6 +281,21 @@ img { max-width: 100%; display: block; }
   font-size: clamp(16px, 2vw, 20px);
   color: var(--fg-mute);
 }
+.hero-hint {
+  margin-top: var(--space-4);
+  font-size: 13px;
+  color: var(--fg-dim);
+}
+.hero-hint a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-color: rgba(125, 249, 255, 0.3);
+  text-underline-offset: 3px;
+  transition: text-decoration-color 0.2s ease;
+}
+.hero-hint a:hover {
+  text-decoration-color: var(--accent);
+}
 
 /* §9 Modules 4 卡 */
 .modules {

@@ -174,6 +174,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // 4.1.1 nav active state 自动设置（按当前 pathname 匹配）
+  document.querySelectorAll('.site-nav a[href]').forEach((a) => {
+    try {
+      const href = a.getAttribute('href');
+      // 跳过外链和 placeholder
+      if (!href || href.startsWith('http') || href === '#' || href.startsWith('./upload.html?edit=')) return;
+      const url = new URL(a.href, location.href);
+      const path = url.pathname.replace(/^.*\/cosmic\//, '').replace(/\.html$/, '') || 'index';
+      const here = location.pathname.replace(/^.*\/cosmic\//, '').replace(/\.html$/, '') || 'index';
+      if (path === here) {
+        a.setAttribute('aria-current', 'page');
+      }
+    } catch (e) { /* ignore */ }
+  });
+
   // 4.2 登录表单（a11y 增强：aria-invalid + aria-describedby）
   const loginForm = $('#login-form');
   if (loginForm) {
