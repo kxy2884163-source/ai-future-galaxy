@@ -42,3 +42,9 @@ coverage/
 
 # 杂项
 .history/
+
+# Codex / 临时产物
+.codex-prompt-*.md
+*.log
+server.out
+server.err
