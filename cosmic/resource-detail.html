@@ -353,6 +353,10 @@
   <script type="module" src="app.js"></script>
   <script type="module" src="cosmic-scene.js"></script>
   <script type="module">
+    // § Supabase 集成
+    import { addComment, getComments as getCommentsSupabase } from './app.js';
+
+
     // § Mock 资源详情（跟 resource.html 同源 · 12 张卡）
     const DATA = {
       '01': { type: 'Prompt', title: '30+ ChatGPT 提效 Prompt 模板', icon: '💬', fav: 1280, dl: 8600, about: '从写作到编程，从学习到规划，直接套用。每个模板都经过实战验证，附带使用场景说明。' },
@@ -396,24 +400,38 @@
       `).join('');
       document.getElementById('related').innerHTML = relHtml || '<p style="color: var(--fg-mute)">暂无相关推荐</p>';
 
-      // § 评论系统（localStorage 持久化）
+      // § 评论系统（Supabase 主流 + localStorage backup）
       const LS_COMMENTS = 'cosmic.comments';
       const resKey = 'res_' + id;
 
-      function getComments() {
-        try { return JSON.parse(localStorage.getItem(LS_COMMENTS) || '{}'); }
-        catch { return {}; }
+      function getLSComments() {
+        try {
+          const map = JSON.parse(localStorage.getItem(LS_COMMENTS) || '{}');
+          return map[resKey] || [];
+        } catch { return []; }
       }
-      function saveComments(map) {
-        localStorage.setItem(LS_COMMENTS, JSON.stringify(map));
-      }
-      function getThisRes() {
-        return (getComments()[resKey] || []);
+      function saveLSComments(list) {
+        try {
+          const map = JSON.parse(localStorage.getItem(LS_COMMENTS) || '{}');
+          map[resKey] = list;
+          localStorage.setItem(LS_COMMENTS, JSON.stringify(map));
+        } catch {}
       }
 
-      function renderComments() {
-        const list = getThisRes();
+      async function renderComments() {
         const ul = document.getElementById('cmt-list');
+        let list = [];
+        try {
+          // 优先 Supabase
+          list = await getCommentsSupabase(id);
+        } catch (e) {
+          list = getLSComments();
+        }
+        // Supabase 空 + localStorage 有 → 用 localStorage（匿名评论）
+        if (list.length === 0) {
+          const ls = getLSComments();
+          if (ls.length > 0) list = ls;
+        }
         document.getElementById('cmt-count').textContent = `(${list.length})`;
         if (list.length === 0) {
           ul.innerHTML = '<div class="cmt-empty">暂无评论 · 来抢沙发？</div>';
@@ -421,12 +439,12 @@
         }
         ul.innerHTML = list.map(c => `
           <div class="cmt-item">
-            <div class="cmt-avatar">${(c.author || '匿').slice(0, 1).toUpperCase()}</div>
+            <div class="cmt-avatar">${escape((c.author_name || '匿').slice(0, 1).toUpperCase())}</div>
             <div class="cmt-body">
               <div class="cmt-meta">
-                <strong>${escape(c.author || '匿名')}</strong>
+                <strong>${escape(c.author_name || '匿名')}</strong>
                 <span>·</span>
-                <span>${formatTime(c.ts)}</span>
+                <span>${formatTime(c.created_at || c.ts)}</span>
               </div>
               <div class="cmt-content">${escape(c.content)}</div>
             </div>
@@ -434,27 +452,34 @@
         `).join('');
       }
 
-      // 评论提交
-      document.getElementById('cmt-form').addEventListener('submit', (e) => {
+      // 评论提交（乐观 UI + Supabase 同步 + localStorage backup）
+      document.getElementById('cmt-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const input = document.getElementById('cmt-input');
         const content = input.value.trim();
         if (!content) return;
 
-        const user = getCurrentUser();
-        const author = user ? user.username : `访客${Math.floor(Math.random() * 9000 + 1000)}`;
-
-        const map = getComments();
-        if (!map[resKey]) map[resKey] = [];
-        map[resKey].unshift({
+        // 1. 乐观 UI（即时显示）
+        const optimistic = {
           id: 'c_' + Date.now().toString(36),
-          author,
+          author_name: '你刚刚',
           content,
-          ts: new Date().toISOString(),
-        });
-        saveComments(map);
+          created_at: new Date().toISOString(),
+        };
+        const ls = getLSComments();
+        ls.unshift(optimistic);
+        saveLSComments(ls);
         input.value = '';
-        renderComments();
+        await renderComments();
+
+        // 2. Supabase 同步（需登录）
+        try {
+          await addComment(id, content);
+          await renderComments(); // 拉真实数据
+        } catch (err) {
+          // 未登录 / 失败 → 保留 localStorage
+          if (window.showBanner) showBanner('未登录 · 评论已保存在本地', 'warn');
+        }
       });
 
       renderComments();

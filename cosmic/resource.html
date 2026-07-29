@@ -277,6 +277,9 @@
   <script type="module" src="app.js"></script>
   <script type="module" src="cosmic-scene.js"></script>
   <script type="module">
+    // § Supabase 集成（从 app.js 导入 async API）
+    import { toggleResourceFav, getUserResourceFavs, toggleLike, getUserLikes } from './app.js';
+
     // § Mock 数据（12 张资源卡 · 跟 PRD § 模块 2 对齐）
     const RESOURCES = [
       { id: '01', type: 'prompt',    title: '30+ ChatGPT 提效 Prompt 模板', desc: '从写作到编程，从学习到规划，直接套用。', icon: '💬', fav: 1280, dl: 8600 },
@@ -299,6 +302,21 @@
     let page = 1;
     const PAGE_SIZE = 8;
 
+    // 缓存用户收藏 / 点赞（从 Supabase 读）
+    let userFavs = new Set();
+    let userLikes = new Map();
+
+    async function refreshUserData() {
+      try {
+        const favs = await getUserResourceFavs();
+        userFavs = new Set(favs);
+        const likes = await getUserLikes();
+        userLikes = new Map(likes.map(id => [id, 1]));
+      } catch (e) {
+        console.warn('refreshUserData:', e);
+      }
+    }
+
     function render() {
       const filtered = RESOURCES.filter(r =>
         (currentCat === 'all' || r.type === currentCat) &&
@@ -317,12 +335,22 @@
           </div>`;
       } else {
         grid.innerHTML = slice.map(r => {
-          const favKey = 'cosmic.favs';
-          const likeKey = 'cosmic.likes';
-          const favs = readJSON(favKey, []);
-          const likes = readJSON(likeKey, {});
-          const isFav = favs.includes(r.id);
-          const likeCount = (likes[r.id] || 0) + r.fav;
+          // 优先用 Supabase 状态 · fallback localStorage
+          let isFav = userFavs.has(r.id);
+          if (userFavs.size === 0) {
+            try {
+              const ls = JSON.parse(localStorage.getItem('cosmic.favs') || '[]');
+              isFav = ls.includes(r.id);
+            } catch {}
+          }
+          let localLikes = userLikes.get(r.id) || 0;
+          if (userLikes.size === 0) {
+            try {
+              const ls = JSON.parse(localStorage.getItem('cosmic.likes') || '{}');
+              localLikes = ls[r.id] || 0;
+            } catch {}
+          }
+          const likeCount = localLikes + r.fav;
           return `
           <div class="res-card-wrap">
             <a class="res-card" href="./resource-detail.html?id=${encodeURIComponent(r.id)}">
@@ -355,15 +383,15 @@
 
       // Bind action buttons
       grid.querySelectorAll('.res-action').forEach(btn => {
-        btn.addEventListener('click', (e) => {
+        btn.addEventListener('click', async (e) => {
           e.preventDefault();
           e.stopPropagation();
           const action = btn.dataset.action;
           const rid = btn.dataset.id;
           if (action === 'fav') {
-            toggleFav(rid, btn);
+            await onToggleFav(rid, btn);
           } else if (action === 'like') {
-            toggleLike(rid, btn);
+            await onToggleLike(rid, btn);
           }
         });
       });
@@ -387,44 +415,58 @@
       return ({ prompt:'Prompt', model:'Model', tool:'Tool', dataset:'Dataset', inspiration:'Inspiration' })[t] || t;
     }
 
-    // § 收藏 / 点赞 持久化
-    function readJSON(key, fallback = null) {
-      try { return JSON.parse(localStorage.getItem(key) || 'null') ?? fallback; }
-      catch { return fallback; }
-    }
-    function writeJSON(key, val) {
-      localStorage.setItem(key, JSON.stringify(val));
-    }
-    function toggleFav(id, btn) {
-      const favs = readJSON('cosmic.favs', []);
-      const idx = favs.indexOf(id);
-      if (idx >= 0) {
-        favs.splice(idx, 1);
-        btn.classList.remove('is-active');
-        btn.setAttribute('aria-pressed', 'false');
-        btn.querySelector('.count').textContent = '';
-        btn.querySelector('[aria-hidden]').textContent = '☆';
-      } else {
-        favs.push(id);
-        btn.classList.add('is-active');
-        btn.setAttribute('aria-pressed', 'true');
-        btn.querySelector('.count').textContent = '已收藏';
-        btn.querySelector('[aria-hidden]').textContent = '★';
+    // 异步 toggle · 乐观 UI + 后台 Supabase 同步
+    async function onToggleFav(rid, btn) {
+      // 1. 乐观 UI 更新
+      const wasActive = btn.classList.contains('is-active');
+      btn.classList.toggle('is-active');
+      btn.setAttribute('aria-pressed', !wasActive);
+      btn.querySelector('.count').textContent = !wasActive ? '已收藏' : '';
+      btn.querySelector('[aria-hidden]').textContent = !wasActive ? '★' : '☆';
+
+      // 2. localStorage 同步（fallback）
+      try {
+        const ls = JSON.parse(localStorage.getItem('cosmic.favs') || '[]');
+        const idx = ls.indexOf(rid);
+        if (idx >= 0 && wasActive) ls.splice(idx, 1);
+        else if (!wasActive) ls.push(rid);
+        localStorage.setItem('cosmic.favs', JSON.stringify(ls));
+      } catch {}
+
+      // 3. Supabase 同步（真数据）
+      try {
+        const isFav = await toggleResourceFav(rid);
+        if (isFav) userFavs.add(rid); else userFavs.delete(rid);
+      } catch (e) {
+        // 未登录 / Supabase 不可用 · 不报错（localStorage 已 fallback）
       }
-      writeJSON('cosmic.favs', favs);
     }
-    function toggleLike(id, btn) {
-      const likes = readJSON('cosmic.likes', {});
-      likes[id] = (likes[id] || 0) + 1;
-      writeJSON('cosmic.likes', likes);
-      const baseFav = (RESOURCES.find(r => r.id === id) || { fav: 0 }).fav;
-      btn.querySelector('.count').textContent = (baseFav + likes[id]).toLocaleString();
+
+    async function onToggleLike(rid, btn) {
+      // 1. 乐观 UI
+      const current = (userLikes.get(rid) || 0) + 1;
+      userLikes.set(rid, current);
+      const baseFav = (RESOURCES.find(r => r.id === rid) || { fav: 0 }).fav;
+      btn.querySelector('.count').textContent = (baseFav + current).toLocaleString();
       btn.style.transform = 'scale(1.1)';
       setTimeout(() => { btn.style.transform = ''; }, 200);
+
+      // 2. localStorage
+      try {
+        const ls = JSON.parse(localStorage.getItem('cosmic.likes') || '{}');
+        ls[rid] = (ls[rid] || 0) + 1;
+        localStorage.setItem('cosmic.likes', JSON.stringify(ls));
+      } catch {}
+
+      // 3. Supabase
+      try {
+        await toggleLike(rid);
+      } catch (e) { /* 未登录时静默 */ }
     }
 
     // § Bind
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
+      await refreshUserData();
       // filter pills
       document.querySelectorAll('.filter-pill').forEach(p => {
         p.addEventListener('click', () => {

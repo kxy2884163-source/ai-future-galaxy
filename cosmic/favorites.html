@@ -149,6 +149,9 @@
   <script type="module" src="app.js"></script>
   <script type="module" src="cosmic-scene.js"></script>
   <script type="module">
+    // § Supabase 集成
+    import { getUserResourceFavs, getUserToolFavs } from './app.js';
+
     // § Mock 数据（演示用 · 阶段 2 接 Supabase）
     const RES_MAP = {
       '01': { icon: '💬', title: '30+ ChatGPT 提效 Prompt 模板', desc: '从写作到编程，从学习到规划，直接套用。', type: 'Prompt' },
@@ -167,9 +170,18 @@
       return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      const favs = readJSON('cosmic.favs', []);
-      const toolFavs = readJSON('cosmic.toolFavs', []);
+    document.addEventListener('DOMContentLoaded', async () => {
+      // 优先 Supabase 真实数据
+      let favs = [];
+      let toolFavs = [];
+      try {
+        favs = await getUserResourceFavs();
+        toolFavs = await getUserToolFavs();
+      } catch (e) {
+        // Supabase 不可用 · localStorage fallback
+        favs = readJSON('cosmic.favs', []);
+        toolFavs = readJSON('cosmic.toolFavs', []);
+      }
 
       document.getElementById('r-count').textContent = favs.length;
       document.getElementById('t-count').textContent = toolFavs.length;
@@ -211,7 +223,6 @@
         return;
       }
       panel.innerHTML = `<div class="fav-grid">${toolFavs.map(name => {
-        // 工具的 id 就是 name（基于 tools.html）
         return `<a class="fav-card" href="./tools.html">
           <div class="icon" aria-hidden="true">★</div>
           <h4>${escape(name)}</h4>

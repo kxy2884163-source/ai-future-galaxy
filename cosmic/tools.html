@@ -351,7 +351,10 @@
   <script type="module" src="app.js"></script>
   <script type="module" src="cosmic-scene.js"></script>
   <script type="module">
-    // § 收藏按钮（localStorage 持久化）
+    // § Supabase 集成
+    import { toggleToolFav, getUserToolFavs } from './app.js';
+
+    // § 收藏按钮（Supabase 主流 + localStorage backup）
     const LS_TOOL_FAVS = 'cosmic.toolFavs';
 
     function readTools() {
@@ -361,38 +364,48 @@
     function writeTools(arr) {
       localStorage.setItem(LS_TOOL_FAVS, JSON.stringify(arr));
     }
-    function setupFavBtn(card, toolId, toolName) {
-      const favs = readTools();
-      const isActive = favs.includes(toolId);
+
+    async function setupFavBtn(card, toolId, toolName) {
+      // 优先从 Supabase 读
+      let isActive = false;
+      try {
+        const favs = await getUserToolFavs();
+        isActive = favs.includes(toolId);
+      } catch (e) {
+        // Supabase 不可用 · localStorage fallback
+        isActive = readTools().includes(toolId);
+      }
+
       const btn = document.createElement('button');
       btn.className = 'fav-btn' + (isActive ? ' is-active' : '');
       btn.type = 'button';
       btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
       btn.setAttribute('aria-label', '收藏 ' + toolName);
       btn.textContent = isActive ? '★' : '☆';
-      btn.addEventListener('click', (e) => {
+      btn.addEventListener('click', async (e) => {
         e.preventDefault();
         e.stopPropagation();
+        // 1. 乐观 UI
+        const wasActive = btn.classList.contains('is-active');
+        btn.classList.toggle('is-active');
+        btn.setAttribute('aria-pressed', !wasActive);
+        btn.textContent = !wasActive ? '★' : '☆';
+        // 2. localStorage 同步
         const cur = readTools();
         const idx = cur.indexOf(toolId);
-        if (idx >= 0) {
-          cur.splice(idx, 1);
-          btn.classList.remove('is-active');
-          btn.setAttribute('aria-pressed', 'false');
-          btn.textContent = '☆';
-        } else {
-          cur.push(toolId);
-          btn.classList.add('is-active');
-          btn.setAttribute('aria-pressed', 'true');
-          btn.textContent = '★';
-        }
+        if (idx >= 0 && wasActive) cur.splice(idx, 1);
+        else if (!wasActive) cur.push(toolId);
         writeTools(cur);
+        // 3. Supabase 同步
+        try {
+          await toggleToolFav(toolId);
+        } catch (e) { /* 未登录时静默 */ }
       });
       card.style.position = 'relative';
       card.appendChild(btn);
     }
 
-    // 现有卡片注入收藏按钮
+    // 现有卡片注入收藏按钮（并行）
     document.querySelectorAll('.tool-card').forEach(card => {
       const nameEl = card.querySelector('.tool-name');
       if (!nameEl) return;
