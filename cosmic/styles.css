@@ -570,6 +570,33 @@ img { max-width: 100%; display: block; }
   50% { transform: translateY(-6px); }
 }
 
+/* §15b 表单错误状态（a11y） */
+.form-error {
+  display: block;
+  margin-top: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: rgba(255, 93, 108, 0.1);
+  border: 1px solid rgba(255, 93, 108, 0.3);
+  border-radius: var(--radius-sm);
+  color: var(--danger);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+.form-input[aria-invalid="true"],
+.auth-form input[aria-invalid="true"],
+.form-row input[aria-invalid="true"],
+.form-row textarea[aria-invalid="true"],
+.form-row select[aria-invalid="true"] {
+  border-color: var(--danger);
+  background: rgba(255, 93, 108, 0.06);
+}
+.form-input[aria-invalid="true"]:focus,
+.auth-form input[aria-invalid="true"]:focus {
+  border-color: var(--danger);
+  outline-color: var(--danger);
+}
+
 /* §16 prefers-reduced-motion 适配 */
 @media (prefers-reduced-motion: reduce) {
   *,

@@ -178,16 +178,16 @@
       <p class="desc">基础资料 · 修改后立即生效</p>
       <div class="form-row">
         <label for="s-username">用户名</label>
-        <input id="s-username" type="text" maxlength="20">
+        <input id="s-username" type="text" maxlength="20" aria-invalid="false">
       </div>
       <div class="form-row">
         <label for="s-email">邮箱</label>
-        <input id="s-email" type="email" disabled>
+        <input id="s-email" type="email" disabled aria-invalid="false">
         <span style="font-size: 11px; color: var(--fg-dim);">（邮箱修改需要验证 · 阶段 2 接 Supabase 后启用）</span>
       </div>
       <div class="form-row">
         <label for="s-bio">个人简介</label>
-        <textarea id="s-bio" maxlength="200"></textarea>
+        <textarea id="s-bio" maxlength="200" aria-invalid="false"></textarea>
       </div>
       <div style="text-align: right;">
         <button class="btn btn-primary" id="save-account" type="button">保存</button>
@@ -273,6 +273,9 @@
     <p>✦ AI 未来星域社区 · 设置</p>
   </footer>
 
+  <script type="module">
+    import { showFieldError, getCurrentUser } from './app.js';
+  </script>
   <script type="module" src="app.js"></script>
   <script type="module" src="cosmic-scene.js"></script>
   <script type="module">
@@ -308,12 +311,22 @@
       document.getElementById('sw-follow').checked = prefs.follow;
       document.getElementById('sw-sys').checked = prefs.sys;
 
-      // 保存
+      // 保存（a11y 增强：aria-invalid 错误提示）
+      const usernameInput = document.getElementById('s-username');
+      const bioInput = document.getElementById('s-bio');
+      function clearSettingsErrors() {
+        usernameInput.removeAttribute('aria-invalid');
+        usernameInput.setAttribute('aria-invalid', 'false');
+        bioInput.setAttribute('aria-invalid', 'false');
+      }
+
       document.getElementById('save-account').addEventListener('click', () => {
-        const newUsername = document.getElementById('s-username').value.trim();
-        const newBio = document.getElementById('s-bio').value.trim();
+        clearSettingsErrors();
+        const newUsername = usernameInput.value.trim();
+        const newBio = bioInput.value.trim();
         if (!newUsername) {
-          alert('用户名不能为空');
+          showFieldError(usernameInput, '用户名不能为空');
+          usernameInput.focus();
           return;
         }
         me.username = newUsername;
@@ -354,15 +367,15 @@
         });
       });
 
-      // 注销
+      // 注销（保留 confirm · 重要操作需要明确确认）
       document.getElementById('delete-account').addEventListener('click', () => {
         if (confirm('⚠️ 确定注销账号？\n\n所有数据将永久删除 · 不可恢复！')) {
           if (confirm('再确认一次 · 真的注销吗？')) {
             localStorage.removeItem('cosmic.currentUser');
             localStorage.removeItem('cosmic.prefs');
             localStorage.removeItem('cosmic.users');
-            alert('账号已注销 · 回到首页');
-            location.href = './index.html';
+            showToast('账号已注销 · 回到首页');
+            setTimeout(() => location.href = './index.html', 1500);
           }
         }
       });

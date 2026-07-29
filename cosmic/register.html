@@ -32,19 +32,19 @@
       <form class="auth-form" id="register-form" novalidate>
         <label>
           <span class="visually-hidden">用户名</span>
-          <input type="text" name="username" placeholder="用户名" required autocomplete="username" minlength="2" maxlength="20">
+          <input type="text" name="username" placeholder="用户名" required autocomplete="username" minlength="2" maxlength="20" aria-invalid="false">
         </label>
         <label>
           <span class="visually-hidden">邮箱</span>
-          <input type="email" name="email" placeholder="邮箱" required autocomplete="email">
+          <input type="email" name="email" placeholder="邮箱" required autocomplete="email" aria-invalid="false">
         </label>
         <label>
           <span class="visually-hidden">密码</span>
-          <input type="password" name="password" placeholder="密码（至少 6 位）" required autocomplete="new-password" minlength="6">
+          <input type="password" name="password" placeholder="密码（至少 6 位）" required autocomplete="new-password" minlength="6" aria-invalid="false">
         </label>
         <label>
           <span class="visually-hidden">确认密码</span>
-          <input type="password" name="confirm" placeholder="确认密码" required autocomplete="new-password" minlength="6">
+          <input type="password" name="confirm" placeholder="确认密码" required autocomplete="new-password" minlength="6" aria-invalid="false">
         </label>
         <button type="submit" class="btn btn-primary">注册</button>
       </form>

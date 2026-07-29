@@ -38,11 +38,11 @@
       <form class="auth-form" id="login-form" novalidate>
         <label>
           <span class="visually-hidden">邮箱</span>
-          <input type="email" name="email" placeholder="邮箱" required autocomplete="email">
+          <input type="email" name="email" placeholder="邮箱" required autocomplete="email" aria-invalid="false">
         </label>
         <label>
           <span class="visually-hidden">密码</span>
-          <input type="password" name="password" placeholder="密码" required autocomplete="current-password" minlength="6">
+          <input type="password" name="password" placeholder="密码" required autocomplete="current-password" minlength="6" aria-invalid="false">
         </label>
         <button type="submit" class="btn btn-primary">登录</button>
       </form>

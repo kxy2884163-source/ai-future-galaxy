@@ -117,6 +117,41 @@ export function writeFlash(type, text) {
   writeJSON(LS_FLASH, { type, text });
 }
 
+// §3.5 表单错误 a11y（aria-invalid + aria-describedby）
+export function showFieldError(input, msg) {
+  if (!input) return;
+  input.setAttribute('aria-invalid', 'true');
+
+  // 找或建 error span
+  let errId = input.getAttribute('aria-describedby');
+  let errSpan = errId ? document.getElementById(errId) : null;
+  if (!errSpan) {
+    errSpan = document.createElement('span');
+    errSpan.className = 'form-error';
+    errSpan.setAttribute('role', 'alert');
+    // ID 用 input.name 或 fallback
+    errSpan.id = 'err-' + (input.name || input.id || ('f' + Date.now()));
+    input.setAttribute('aria-describedby', errSpan.id);
+    input.insertAdjacentElement('afterend', errSpan);
+  }
+  errSpan.textContent = msg;
+}
+
+export function clearFieldError(input) {
+  if (!input) return;
+  input.setAttribute('aria-invalid', 'false');
+  const errId = input.getAttribute('aria-describedby');
+  if (errId) {
+    const errSpan = document.getElementById(errId);
+    if (errSpan) errSpan.textContent = '';
+  }
+}
+
+export function clearAllFieldErrors(form) {
+  if (!form) return;
+  form.querySelectorAll('[aria-invalid]').forEach((el) => clearFieldError(el));
+}
+
 // §4 页面绑定
 document.addEventListener('DOMContentLoaded', () => {
   // 4.1 nav 按钮（登录/登出状态切换）
@@ -139,12 +174,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // 4.2 登录表单
+  // 4.2 登录表单（a11y 增强：aria-invalid + aria-describedby）
   const loginForm = $('#login-form');
   if (loginForm) {
     loginForm.addEventListener('submit', (e) => {
       e.preventDefault();
+      clearAllFieldErrors(loginForm);
       const fd = new FormData(loginForm);
+      const emailInput = loginForm.querySelector('[name="email"]');
+      const passwordInput = loginForm.querySelector('[name="password"]');
       try {
         const user = loginUser({
           email: fd.get('email'),
@@ -153,32 +191,54 @@ document.addEventListener('DOMContentLoaded', () => {
         writeFlash('success', `欢迎回来，${user.username}！`);
         location.href = './dashboard.html';
       } catch (err) {
-        showBanner(err.message, 'error');
+        if (err.message.includes('邮箱')) showFieldError(emailInput, err.message);
+        else if (err.message.includes('密码')) showFieldError(passwordInput, err.message);
+        else showFieldError(emailInput, err.message);
       }
+    });
+    loginForm.querySelectorAll('input').forEach((inp) => {
+      inp.addEventListener('input', () => clearFieldError(inp));
     });
   }
 
-  // 4.3 注册表单
+  // 4.3 注册表单（a11y 增强）
   const registerForm = $('#register-form');
   if (registerForm) {
     registerForm.addEventListener('submit', (e) => {
       e.preventDefault();
+      clearAllFieldErrors(registerForm);
       const fd = new FormData(registerForm);
+      const inputs = {
+        username: registerForm.querySelector('[name="username"]'),
+        email: registerForm.querySelector('[name="email"]'),
+        password: registerForm.querySelector('[name="password"]'),
+        confirm: registerForm.querySelector('[name="confirm"]'),
+      };
       try {
+        // 校验确认密码
+        const pwd = fd.get('password');
+        const confirm = fd.get('confirm');
+        if (confirm !== pwd) {
+          showFieldError(inputs.confirm, '两次密码输入不一致');
+          return;
+        }
         const user = registerUser({
           username: fd.get('username'),
           email: fd.get('email'),
-          password: fd.get('password'),
+          password: pwd,
         });
-        // 校验确认密码
-        const confirm = fd.get('confirm');
-        if (confirm !== fd.get('password')) throw new Error('两次密码输入不一致');
-
         writeFlash('success', `注册成功！欢迎加入 ${user.username}`);
         location.href = './dashboard.html';
       } catch (err) {
-        showBanner(err.message, 'error');
+        const msg = err.message;
+        if (msg.includes('用户名')) showFieldError(inputs.username, msg);
+        else if (msg.includes('邮箱')) showFieldError(inputs.email, msg);
+        else if (msg.includes('密码')) showFieldError(inputs.password, msg);
+        else showFieldError(inputs.username, msg);
       }
+    });
+    registerForm.querySelectorAll('input').forEach((inp) => {
+      inp.addEventListener('input', () => clearFieldError(inp));
     });
   }
 
