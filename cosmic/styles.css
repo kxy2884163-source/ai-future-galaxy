@@ -659,6 +659,51 @@ img { max-width: 100%; display: block; }
   transform: translate(0, 0);
 }
 
+/* §15d 按钮 + 卡片 hover 微动效（阶段 3 增强） */
+.btn {
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1),
+              box-shadow 0.25s ease,
+              background 0.2s ease !important;
+}
+.btn:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 10px 24px rgba(125, 249, 255, 0.25);
+}
+.btn:active {
+  transform: translateY(0) scale(0.97);
+  transition-duration: 0.05s;
+}
+
+.module-card,
+.tool-card,
+.me-card,
+.resource-card-item,
+.fav-card,
+.related-item,
+.search-item,
+.notif-item {
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1),
+              box-shadow 0.4s ease,
+              border-color 0.3s ease;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+.module-card:hover,
+.tool-card:hover,
+.me-card:hover,
+.resource-card-item:hover,
+.fav-card:hover,
+.related-item:hover,
+.search-item:hover {
+  transform: translateY(-6px) scale(1.02) rotateX(1.5deg);
+  box-shadow: 0 20px 50px rgba(125, 249, 255, 0.22);
+  border-color: var(--accent);
+}
+.notif-item:hover {
+  transform: translateX(4px);
+  border-color: var(--accent);
+}
+
 /* §16 prefers-reduced-motion 适配 */
 @media (prefers-reduced-motion: reduce) {
   *,
