@@ -276,7 +276,8 @@
   </footer>
 
   <script type="module">
-    import { showFieldError, getCurrentUser } from './app.js';
+    import { showFieldError, getCurrentUser, showBanner, logoutUser } from './app.js';
+    import { supabase } from './app.js';
   </script>
   <script type="module" src="app.js"></script>
   <script type="module" src="cosmic-scene.js"></script>
@@ -287,21 +288,42 @@
     }
     function writeJSON(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
 
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
       const me = getCurrentUser();
       if (!me) {
-        // 未登录 · 显示表单 disabled
         document.getElementById('s-username').placeholder = '请先登录';
         document.getElementById('s-bio').placeholder = '请先登录';
         return;
       }
 
-      document.getElementById('s-username').value = me.username || '';
-      document.getElementById('s-email').value = me.email || '';
-      document.getElementById('s-bio').value = me.bio || '';
+      // 优先从 Supabase user_profiles 拉真实数据
+      let profile = null;
+      try {
+        const { data } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('id', me.id)
+          .single();
+        if (data) profile = data;
+      } catch (e) {
+        console.warn('fetch profile:', e);
+      }
 
-      // 加载偏好
-      const prefs = readJSON('cosmic.prefs', {
+      // 表单填充
+      document.getElementById('s-username').value = profile?.username || me.username || '';
+      document.getElementById('s-email').value = me.email || '';
+      document.getElementById('s-bio').value = profile?.bio || me.bio || '';
+
+      // 偏好加载（user_profiles 真实 · fallback localStorage）
+      const prefs = profile ? {
+        public: profile.privacy_public,
+        dm: profile.privacy_dm,
+        online: profile.privacy_online,
+        cmt: profile.notify_comment,
+        like: profile.notify_like,
+        follow: profile.notify_follow,
+        sys: profile.notify_system,
+      } : readJSON('cosmic.prefs', {
         public: true, dm: false, online: true,
         cmt: true, like: true, follow: true, sys: false,
       });
@@ -313,7 +335,7 @@
       document.getElementById('sw-follow').checked = prefs.follow;
       document.getElementById('sw-sys').checked = prefs.sys;
 
-      // 保存（a11y 增强：aria-invalid 错误提示）
+      // 保存
       const usernameInput = document.getElementById('s-username');
       const bioInput = document.getElementById('s-bio');
       function clearSettingsErrors() {
@@ -322,7 +344,7 @@
         bioInput.setAttribute('aria-invalid', 'false');
       }
 
-      document.getElementById('save-account').addEventListener('click', () => {
+      document.getElementById('save-account').addEventListener('click', async () => {
         clearSettingsErrors();
         const newUsername = usernameInput.value.trim();
         const newBio = bioInput.value.trim();
@@ -331,32 +353,31 @@
           usernameInput.focus();
           return;
         }
+
+        // 1. localStorage 乐观更新
         me.username = newUsername;
         me.bio = newBio;
         writeJSON('cosmic.currentUser', me);
-        const users = readJSON('cosmic.users', []);
-        const idx = users.findIndex(u => u.id === me.id);
-        if (idx >= 0) {
-          users[idx].username = newUsername;
-          users[idx].bio = newBio;
-          writeJSON('cosmic.users', users);
-        }
-        // 同步保存偏好
-        writeJSON('cosmic.prefs', {
-          public: document.getElementById('sw-public').checked,
-          dm: document.getElementById('sw-dm').checked,
-          online: document.getElementById('sw-online').checked,
-          cmt: document.getElementById('sw-cmt').checked,
-          like: document.getElementById('sw-like').checked,
-          follow: document.getElementById('sw-follow').checked,
-          sys: document.getElementById('sw-sys').checked,
-        });
-        showToast('已保存');
-      });
 
-      // 偏好即时保存（不点保存按钮）
-      ['sw-public','sw-dm','sw-online','sw-cmt','sw-like','sw-follow','sw-sys'].forEach(id => {
-        document.getElementById(id).addEventListener('change', () => {
+        // 2. Supabase user_profiles 更新
+        try {
+          await supabase
+            .from('user_profiles')
+            .update({
+              username: newUsername,
+              bio: newBio,
+              privacy_public: document.getElementById('sw-public').checked,
+              privacy_dm: document.getElementById('sw-dm').checked,
+              privacy_online: document.getElementById('sw-online').checked,
+              notify_comment: document.getElementById('sw-cmt').checked,
+              notify_like: document.getElementById('sw-like').checked,
+              notify_follow: document.getElementById('sw-follow').checked,
+              notify_system: document.getElementById('sw-sys').checked,
+            })
+            .eq('id', me.id);
+          showBanner('已保存到 Supabase', 'success');
+        } catch (e) {
+          showBanner('保存失败 · 仅本地更新：' + e.message, 'warn');
           writeJSON('cosmic.prefs', {
             public: document.getElementById('sw-public').checked,
             dm: document.getElementById('sw-dm').checked,
@@ -366,35 +387,58 @@
             follow: document.getElementById('sw-follow').checked,
             sys: document.getElementById('sw-sys').checked,
           });
+        }
+      });
+
+      // 偏好即时保存（switch 切换）
+      ['sw-public','sw-dm','sw-online','sw-cmt','sw-like','sw-follow','sw-sys'].forEach(id => {
+        document.getElementById(id).addEventListener('change', async () => {
+          const newPrefs = {
+            public: document.getElementById('sw-public').checked,
+            dm: document.getElementById('sw-dm').checked,
+            online: document.getElementById('sw-online').checked,
+            cmt: document.getElementById('sw-cmt').checked,
+            like: document.getElementById('sw-like').checked,
+            follow: document.getElementById('sw-follow').checked,
+            sys: document.getElementById('sw-sys').checked,
+          };
+          // 1. localStorage
+          writeJSON('cosmic.prefs', newPrefs);
+          // 2. Supabase（best-effort）
+          try {
+            await supabase.from('user_profiles').update({
+              privacy_public: newPrefs.public,
+              privacy_dm: newPrefs.dm,
+              privacy_online: newPrefs.online,
+              notify_comment: newPrefs.cmt,
+              notify_like: newPrefs.like,
+              notify_follow: newPrefs.follow,
+              notify_system: newPrefs.sys,
+            }).eq('id', me.id);
+          } catch (e) { /* 离线时静默 */ }
         });
       });
 
-      // 注销（保留 confirm · 重要操作需要明确确认）
-      document.getElementById('delete-account').addEventListener('click', () => {
-        if (confirm('⚠️ 确定注销账号？\n\n所有数据将永久删除 · 不可恢复！')) {
-          if (confirm('再确认一次 · 真的注销吗？')) {
-            localStorage.removeItem('cosmic.currentUser');
-            localStorage.removeItem('cosmic.prefs');
-            localStorage.removeItem('cosmic.users');
-            showToast('账号已注销 · 回到首页');
-            setTimeout(() => location.href = './index.html', 1500);
-          }
+      // 注销
+      document.getElementById('delete-account').addEventListener('click', async () => {
+        if (!confirm('⚠️ 确定注销账号？\n\n所有数据将永久删除 · 不可恢复！')) {
+          return;
         }
+        if (!confirm('再确认一次 · 真的注销吗？')) {
+          return;
+        }
+        try {
+          // 1. Supabase signOut（auth 撤销）
+          await supabase.auth.signOut();
+        } catch (e) { /* 离线也允许 */ }
+        // 2. 清 localStorage
+        localStorage.removeItem('cosmic.currentUser');
+        localStorage.removeItem('cosmic.prefs');
+        localStorage.removeItem('cosmic.users');
+        showBanner('账号已注销 · 回到首页', 'info');
+        setTimeout(() => location.href = './index.html', 1500);
       });
     });
-
-    function showToast(text) {
-      const b = document.createElement('div');
-      b.textContent = text;
-      b.style.cssText = `
-        position: fixed; top: 80px; left: 50%; transform: translateX(-50%);
-        padding: 12px 24px; border-radius: 12px; z-index: 100;
-        background: rgba(107, 217, 104, 0.2); border: 1px solid var(--success);
-        color: var(--fg); font-weight: 600; font-size: 14px;
-        -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);`;
-      document.body.appendChild(b);
-      setTimeout(() => b.remove(), 2500);
-    }
   </script>
 </body>
 </html>

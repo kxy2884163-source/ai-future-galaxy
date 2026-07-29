@@ -167,6 +167,15 @@
   <script type="module" src="app.js"></script>
   <script type="module" src="cosmic-scene.js"></script>
   <script type="module">
+    // § Supabase 集成
+    import { getCurrentUser, showBanner } from './app.js';
+    import { supabase } from './app.js';
+
+    const MOCK_DRAFTS = [
+      { id: 'd01', icon: '📝', title: 'GPT-4o 创意写作 Prompt', desc: '还在打磨中…', meta: '昨天编辑' },
+      { id: 'd02', icon: '🤖', title: 'AI 副业变现路径', desc: '初稿，待补充案例', meta: '3 天前' },
+      { id: 'd03', icon: '🎨', title: 'Midjourney 摄影风格速查', desc: '关键词速查表 · 已整理 80%', meta: '上周' },
+    ];
     const MOCK_DRAFTS = [
       { id: 'd01', icon: '💬', title: 'GPT-4o 创意写作 Prompt', desc: '结构化提示词模板 · 还在打磨措辞', tag: 'Prompt', editedAt: '昨天 21:34' },
       { id: 'd02', icon: '🤖', title: 'AI 副业变现路径（v0.3）', desc: '初稿 · 待补充案例和数据', tag: 'Insight', editedAt: '3 天前' },
@@ -182,11 +191,43 @@
       return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
       const me = getCurrentUser();
-      // 收集所有草稿（mock + 用户上传且 status=draft）
-      const userDrafts = me ? readJSON('cosmic.resources', []).filter(r => r.userId === me.id && r.status === 'draft') : [];
-      const all = [...userDrafts, ...MOCK_DRAFTS];
+      if (!me) {
+        showBanner('请先登录', 'warn');
+        setTimeout(() => location.href = './login.html', 1500);
+        return;
+      }
+
+      // 优先从 Supabase 拿真实草稿
+      let all = [];
+      try {
+        const { data, error } = await supabase
+          .from('drafts')
+          .select('*')
+          .eq('user_id', me.id)
+          .order('edited_at', { ascending: false });
+        if (!error && data) {
+          all = data.map(d => ({
+            id: d.id,
+            icon: '📝',
+            title: d.title || '未命名草稿',
+            desc: `payload ${Object.keys(d.payload || {}).length} 字段 · ID ${d.id.slice(0,6)}`,
+            tag: 'Draft',
+            editedAt: formatTime(d.edited_at),
+            _supabase: true,
+          }));
+        }
+      } catch (e) {
+        console.warn('fetch drafts:', e);
+      }
+
+      // mock 数据填充（如果没有真实草稿）
+      if (all.length === 0) {
+        all = [...MOCK_DRAFTS];
+      } else {
+        all = [...all, ...MOCK_DRAFTS];
+      }
 
       const list = document.getElementById('draft-list');
       if (all.length === 0) {
@@ -200,7 +241,7 @@
       }
 
       list.innerHTML = all.map(d => `
-        <div class="draft-item" data-id="${escape(d.id)}">
+        <div class="draft-item" data-id="${escape(d.id)}" data-supabase="${d._supabase ? '1' : '0'}">
           <div class="icon" aria-hidden="true">${d.icon}</div>
           <div class="body">
             <h3>${escape(d.title)}</h3>
@@ -220,28 +261,71 @@
 
       // Bind actions
       list.querySelectorAll('button[data-act]').forEach(b => {
-        b.addEventListener('click', () => {
+        b.addEventListener('click', async () => {
           const id = b.dataset.id;
           const act = b.dataset.act;
+          const isSupabase = b.closest('.draft-item').dataset.supabase === '1';
           const item = b.closest('.draft-item');
           if (act === 'publish') {
-            // a11y: 用 banner 替代 alert，屏幕阅读器能感知
-            const b = document.createElement('div');
-            b.textContent = 'Mock 发布 · 阶段 2 接 Supabase 后真实生效';
-            b.setAttribute('role', 'status');
-            b.setAttribute('aria-live', 'polite');
-            b.style.cssText = 'position:fixed;top:80px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:12px;z-index:100;background:rgba(125,249,255,0.2);border:1px solid var(--accent);color:var(--fg);font-weight:600;font-size:14px;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);';
-            document.body.appendChild(b);
-            setTimeout(() => b.remove(), 2500);
+            if (isSupabase) {
+              try {
+                const { data: draft } = await supabase
+                  .from('drafts')
+                  .select('*')
+                  .eq('id', id)
+                  .single();
+                if (draft) {
+                  await supabase.from('resources').insert({
+                    user_id: draft.user_id,
+                    type: draft.payload?.type || 'prompt',
+                    title: draft.title,
+                    description: draft.payload?.description || '',
+                    icon: draft.payload?.icon || '✦',
+                    tags: draft.payload?.tags || [],
+                    is_draft: false,
+                  });
+                  await supabase.from('drafts').delete().eq('id', id);
+                  item.style.opacity = '0';
+                  setTimeout(() => item.remove(), 250);
+                  showBanner('已发布到资源', 'success');
+                }
+              } catch (e) {
+                showBanner('发布失败：' + e.message, 'error');
+              }
+            } else {
+              showBanner('Mock 发布 · 仅真实草稿可发布', 'warn');
+            }
           } else if (act === 'delete') {
             if (confirm('确定删除这个草稿？')) {
+              if (isSupabase) {
+                try {
+                  await supabase.from('drafts').delete().eq('id', id);
+                } catch (e) {
+                  showBanner('删除失败：' + e.message, 'error');
+                  return;
+                }
+              }
               item.style.opacity = '0';
               setTimeout(() => item.remove(), 250);
+              showBanner('已删除', 'info');
             }
           }
         });
       });
     });
+
+    function formatTime(iso) {
+      try {
+        const d = new Date(iso);
+        const now = new Date();
+        const diff = (now - d) / 1000;
+        if (diff < 60) return '刚刚';
+        if (diff < 3600) return `${Math.floor(diff / 60)} 分钟前`;
+        if (diff < 86400) return `${Math.floor(diff / 3600)} 小时前`;
+        if (diff < 604800) return `${Math.floor(diff / 86400)} 天前`;
+        return d.toLocaleDateString('zh-CN');
+      } catch { return '未知'; }
+    }
   </script>
 </body>
 </html>
