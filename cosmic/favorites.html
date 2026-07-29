@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <base href="/cosmic/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>我的收藏 · AI 未来星域社区</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .fav-wrap {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: var(--space-6) var(--space-5) var(--space-9);
+    }
+    .fav-head {
+      margin-bottom: var(--space-6);
+    }
+    .fav-head h1 {
+      font-size: clamp(28px, 4.5vw, 40px);
+      font-weight: 800;
+      margin-bottom: var(--space-3);
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .fav-head p {
+      color: var(--fg-mute);
+      font-size: 15px;
+    }
+    .fav-tabs {
+      display: flex;
+      gap: var(--space-2);
+      border-bottom: 1px solid var(--glass-border);
+      margin-bottom: var(--space-5);
+    }
+    .fav-tab {
+      padding: var(--space-3) var(--space-5);
+      background: transparent;
+      color: var(--fg-mute);
+      border: none;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+    .fav-tab[aria-selected="true"] {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    .fav-tab .count {
+      margin-left: 6px;
+      padding: 1px 6px;
+      background: var(--glass-strong);
+      border-radius: 8px;
+      font-size: 11px;
+    }
+    .fav-panel { min-height: 300px; }
+    .fav-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: var(--space-4);
+    }
+    .fav-card {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+      padding: var(--space-5);
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      -webkit-backdrop-filter: blur(var(--blur));
+      backdrop-filter: blur(var(--blur));
+      text-decoration: none;
+      color: var(--fg);
+      transition: all 0.2s ease;
+      position: relative;
+    }
+    .fav-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--accent);
+      text-decoration: none;
+    }
+    .fav-card .icon { font-size: 32px; }
+    .fav-card h4 { font-size: 15px; font-weight: 700; }
+    .fav-card p { color: var(--fg-mute); font-size: 13px; flex: 1; }
+    .fav-card .meta {
+      font-size: 12px;
+      color: var(--fg-dim);
+      padding-top: var(--space-2);
+      border-top: 1px solid var(--glass-border);
+      display: flex;
+      justify-content: space-between;
+    }
+    .fav-empty {
+      text-align: center;
+      padding: var(--space-9) var(--space-5);
+      color: var(--fg-mute);
+      grid-column: 1/-1;
+    }
+    .fav-empty .icon { font-size: 48px; opacity: 0.5; margin-bottom: var(--space-3); }
+    .fav-empty p { margin-bottom: var(--space-2); }
+  </style>
+</head>
+<body>
+  <div class="canvas-bg" aria-hidden="true">
+    <canvas id="cosmic-canvas"></canvas>
+  </div>
+
+  <header class="site-header">
+    <a href="./index.html" class="brand" aria-label="AI 未来星域社区">
+      <span class="brand-mark">✦</span>
+      <span class="brand-text">AI 未来星域社区</span>
+    </a>
+    <nav class="site-nav" aria-label="主导航">
+      <a href="./index.html">社区</a>
+      <a href="./resource.html">知识</a>
+      <a href="./tools.html">工具</a>
+      <button id="nav-auth" class="btn btn-ghost" type="button">登录</button>
+    </nav>
+  </header>
+
+  <main class="fav-wrap">
+    <header class="fav-head">
+      <h1>★ 我的收藏</h1>
+      <p>你标记的资源 + 工具，一目了然</p>
+    </header>
+
+    <div class="fav-tabs" role="tablist">
+      <button class="fav-tab" data-tab="resources" aria-selected="true" role="tab">
+        资源<span class="count" id="r-count">0</span>
+      </button>
+      <button class="fav-tab" data-tab="tools" role="tab">
+        工具<span class="count" id="t-count">0</span>
+      </button>
+    </div>
+
+    <div class="fav-panel" id="panel-resources" role="tabpanel"></div>
+    <div class="fav-panel" id="panel-tools" role="tabpanel" hidden></div>
+  </main>
+
+  <footer class="site-footer">
+    <p>✦ AI 未来星域社区 · 我的收藏</p>
+  </footer>
+
+  <script type="module" src="app.js"></script>
+  <script type="module" src="cosmic-scene.js"></script>
+  <script type="module">
+    // § Mock 数据（演示用 · 阶段 2 接 Supabase）
+    const RES_MAP = {
+      '01': { icon: '💬', title: '30+ ChatGPT 提效 Prompt 模板', desc: '从写作到编程，从学习到规划，直接套用。', type: 'Prompt' },
+      '02': { icon: '📸', title: 'Stable Diffusion 摄影 Prompt 大全', desc: '真实摄影风格关键词组合。', type: 'Prompt' },
+      '04': { icon: '🦙', title: 'Llama 3 开源大模型完全指南', desc: '本地部署 + 微调 + 应用案例。', type: 'Model' },
+      '06': { icon: '⌨️', title: 'Cursor 实战指南 · 写代码 ×10', desc: '从入门到精通 · Composing / Debug / Refactor。', type: 'Tool' },
+      '08': { icon: '⚡', title: 'n8n + AI 自动化工作流', desc: '把多个 AI 工具串起来，每天省 3 小时。', type: 'Tool' },
+      '11': { icon: '🎨', title: 'AI 生成艺术 Top 100 案例', desc: '从 DALL·E 到 Midjourney · 创意灵感。', type: 'Inspiration' },
+    };
+
+    function readJSON(key, fallback = null) {
+      try { return JSON.parse(localStorage.getItem(key) || 'null') ?? fallback; }
+      catch { return fallback; }
+    }
+    function escape(s) {
+      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const favs = readJSON('cosmic.favs', []);
+      const toolFavs = readJSON('cosmic.toolFavs', []);
+
+      document.getElementById('r-count').textContent = favs.length;
+      document.getElementById('t-count').textContent = toolFavs.length;
+
+      renderResources(favs);
+      renderTools(toolFavs);
+
+      document.querySelectorAll('.fav-tab').forEach(t => {
+        t.addEventListener('click', () => {
+          const tab = t.dataset.tab;
+          document.querySelectorAll('.fav-tab').forEach(q => q.setAttribute('aria-selected', q === t ? 'true' : 'false'));
+          document.querySelectorAll('.fav-panel').forEach(p => p.hidden = true);
+          document.getElementById('panel-' + tab).hidden = false;
+        });
+      });
+    });
+
+    function renderResources(favs) {
+      const panel = document.getElementById('panel-resources');
+      if (favs.length === 0) {
+        panel.innerHTML = '<div class="fav-grid"><div class="fav-empty"><div class="icon">☆</div><p>还没有收藏资源</p><p>去 <a href="./resource.html" style="color: var(--accent);">资源页</a> 找点好东西吧</p></div></div>';
+        return;
+      }
+      panel.innerHTML = `<div class="fav-grid">${favs.map(id => {
+        const r = RES_MAP[id] || { icon: '✦', title: `资源 ${id}`, desc: '资源描述', type: 'Unknown' };
+        return `<a class="fav-card" href="./resource-detail.html?id=${encodeURIComponent(id)}">
+          <div class="icon" aria-hidden="true">${r.icon}</div>
+          <h4>${escape(r.title)}</h4>
+          <p>${escape(r.desc)}</p>
+          <div class="meta"><span>${escape(r.type)}</span><span>★ 已收藏</span></div>
+        </a>`;
+      }).join('')}</div>`;
+    }
+
+    function renderTools(toolFavs) {
+      const panel = document.getElementById('panel-tools');
+      if (toolFavs.length === 0) {
+        panel.innerHTML = '<div class="fav-grid"><div class="fav-empty"><div class="icon">☆</div><p>还没有收藏工具</p><p>去 <a href="./tools.html" style="color: var(--accent);">工具页</a> 找点好东西吧</p></div></div>';
+        return;
+      }
+      panel.innerHTML = `<div class="fav-grid">${toolFavs.map(name => {
+        // 工具的 id 就是 name（基于 tools.html）
+        return `<a class="fav-card" href="./tools.html">
+          <div class="icon" aria-hidden="true">★</div>
+          <h4>${escape(name)}</h4>
+          <p>已收藏的工具 · 一键直达</p>
+          <div class="meta"><span>插件工具</span><span>★ 已收藏</span></div>
+        </a>`;
+      }).join('')}</div>`;
+    }
+  </script>
+</body>
+</html>

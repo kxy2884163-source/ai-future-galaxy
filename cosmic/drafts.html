@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <base href="/cosmic/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>草稿箱 · AI 未来星域社区</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .draft-wrap {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: var(--space-6) var(--space-5) var(--space-9);
+    }
+    .draft-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      gap: var(--space-3);
+      margin-bottom: var(--space-6);
+    }
+    .draft-head h1 {
+      font-size: clamp(28px, 4.5vw, 40px);
+      font-weight: 800;
+      margin-bottom: var(--space-3);
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .draft-head p {
+      color: var(--fg-mute);
+      font-size: 15px;
+    }
+    .draft-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+    .draft-item {
+      display: flex;
+      gap: var(--space-4);
+      padding: var(--space-5);
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      -webkit-backdrop-filter: blur(var(--blur));
+      backdrop-filter: blur(var(--blur));
+      transition: border-color 0.2s ease;
+    }
+    .draft-item:hover { border-color: var(--accent); }
+    .draft-item .icon {
+      width: 56px;
+      height: 56px;
+      display: grid;
+      place-items: center;
+      background: var(--glass-strong);
+      border-radius: var(--radius);
+      font-size: 28px;
+      flex-shrink: 0;
+    }
+    .draft-item .body {
+      flex: 1;
+      min-width: 0;
+    }
+    .draft-item h3 {
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: var(--space-1);
+    }
+    .draft-item .desc {
+      color: var(--fg-mute);
+      font-size: 13px;
+      margin-bottom: var(--space-2);
+    }
+    .draft-item .meta {
+      display: flex;
+      gap: var(--space-3);
+      font-size: 12px;
+      color: var(--fg-dim);
+    }
+    .draft-item .meta .tag {
+      padding: 2px 8px;
+      background: var(--glass-strong);
+      border-radius: var(--radius-sm);
+      color: var(--warn);
+      font-weight: 500;
+    }
+    .draft-actions {
+      display: flex;
+      gap: var(--space-2);
+      align-items: flex-start;
+      flex-shrink: 0;
+    }
+    .draft-actions button, .draft-actions a {
+      padding: 6px 12px;
+      font-size: 13px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--glass-border);
+      background: var(--glass);
+      color: var(--fg-mute);
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .draft-actions button:hover, .draft-actions a:hover {
+      background: var(--glass-strong);
+      color: var(--accent);
+      text-decoration: none;
+    }
+    .draft-actions .danger:hover { color: var(--danger); }
+
+    .draft-empty {
+      text-align: center;
+      padding: var(--space-9) var(--space-5);
+      color: var(--fg-mute);
+    }
+    .draft-empty .icon { font-size: 48px; opacity: 0.5; margin-bottom: var(--space-3); }
+
+    @media (max-width: 640px) {
+      .draft-item { flex-direction: column; }
+      .draft-actions { width: 100%; justify-content: flex-end; }
+    }
+  </style>
+</head>
+<body>
+  <div class="canvas-bg" aria-hidden="true">
+    <canvas id="cosmic-canvas"></canvas>
+  </div>
+
+  <header class="site-header">
+    <a href="./index.html" class="brand" aria-label="AI 未来星域社区">
+      <span class="brand-mark">✦</span>
+      <span class="brand-text">AI 未来星域社区</span>
+    </a>
+    <nav class="site-nav" aria-label="主导航">
+      <a href="./index.html">社区</a>
+      <a href="./resource.html">知识</a>
+      <a href="./tools.html">工具</a>
+      <button id="nav-auth" class="btn btn-ghost" type="button">登录</button>
+    </nav>
+  </header>
+
+  <main class="draft-wrap">
+    <header class="draft-head">
+      <div>
+        <h1>📝 草稿箱</h1>
+        <p>未发布的资源都在这里 · 继续编辑或直接发布</p>
+      </div>
+      <a href="./upload.html" class="btn btn-primary">+ 新建草稿</a>
+    </header>
+
+    <div class="draft-list" id="draft-list">
+      <div class="draft-empty">
+        <div class="icon" aria-hidden="true">📝</div>
+        <p>加载中…</p>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>✦ AI 未来星域社区 · 草稿箱</p>
+  </footer>
+
+  <script type="module" src="app.js"></script>
+  <script type="module" src="cosmic-scene.js"></script>
+  <script type="module">
+    const MOCK_DRAFTS = [
+      { id: 'd01', icon: '💬', title: 'GPT-4o 创意写作 Prompt', desc: '结构化提示词模板 · 还在打磨措辞', tag: 'Prompt', editedAt: '昨天 21:34' },
+      { id: 'd02', icon: '🤖', title: 'AI 副业变现路径（v0.3）', desc: '初稿 · 待补充案例和数据', tag: 'Insight', editedAt: '3 天前' },
+      { id: 'd03', icon: '🎨', title: 'Midjourney 摄影风格速查', desc: '关键词速查表 · 已整理 80%', tag: 'Prompt', editedAt: '上周' },
+    ];
+
+    function readJSON(key, fallback = null) {
+      try { return JSON.parse(localStorage.getItem(key) || 'null') ?? fallback; }
+      catch { return fallback; }
+    }
+    function writeJSON(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
+    function escape(s) {
+      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const me = getCurrentUser();
+      // 收集所有草稿（mock + 用户上传且 status=draft）
+      const userDrafts = me ? readJSON('cosmic.resources', []).filter(r => r.userId === me.id && r.status === 'draft') : [];
+      const all = [...userDrafts, ...MOCK_DRAFTS];
+
+      const list = document.getElementById('draft-list');
+      if (all.length === 0) {
+        list.innerHTML = `
+          <div class="draft-empty">
+            <div class="icon" aria-hidden="true">📝</div>
+            <p>草稿箱空着</p>
+            <p>试试 <a href="./upload.html" style="color: var(--accent);">新建草稿</a></p>
+          </div>`;
+        return;
+      }
+
+      list.innerHTML = all.map(d => `
+        <div class="draft-item" data-id="${escape(d.id)}">
+          <div class="icon" aria-hidden="true">${d.icon}</div>
+          <div class="body">
+            <h3>${escape(d.title)}</h3>
+            <p class="desc">${escape(d.desc || '')}</p>
+            <div class="meta">
+              <span class="tag">${escape(d.tag || 'Draft')}</span>
+              <span>· 上次编辑 ${escape(d.editedAt || '未知')}</span>
+            </div>
+          </div>
+          <div class="draft-actions">
+            <a href="./upload.html?edit=${encodeURIComponent(d.id)}">继续编辑</a>
+            <button data-act="publish" data-id="${escape(d.id)}">发布</button>
+            <button class="danger" data-act="delete" data-id="${escape(d.id)}">删除</button>
+          </div>
+        </div>
+      `).join('');
+
+      // Bind actions
+      list.querySelectorAll('button[data-act]').forEach(b => {
+        b.addEventListener('click', () => {
+          const id = b.dataset.id;
+          const act = b.dataset.act;
+          const item = b.closest('.draft-item');
+          if (act === 'publish') {
+            alert('Mock 发布 · 阶段 2 接 Supabase 后真实生效');
+          } else if (act === 'delete') {
+            if (confirm('确定删除这个草稿？')) {
+              item.style.opacity = '0';
+              setTimeout(() => item.remove(), 250);
+            }
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>

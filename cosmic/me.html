@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <base href="/cosmic/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>个人主页 · AI 未来星域社区</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .me-wrap {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 0 var(--space-5) var(--space-9);
+    }
+    .me-cover {
+      height: 200px;
+      border-radius: var(--radius-lg);
+      background:
+        radial-gradient(circle at 20% 30%, rgba(125, 249, 255, 0.25), transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(179, 136, 255, 0.25), transparent 50%),
+        radial-gradient(circle at 50% 50%, rgba(255, 107, 157, 0.15), transparent 70%);
+      border: 1px solid var(--glass-border);
+      -webkit-backdrop-filter: blur(var(--blur));
+      backdrop-filter: blur(var(--blur));
+    }
+    .me-head {
+      display: flex;
+      gap: var(--space-5);
+      align-items: flex-end;
+      margin-top: -60px;
+      padding: 0 var(--space-5);
+      flex-wrap: wrap;
+    }
+    .me-avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      display: grid;
+      place-items: center;
+      font-size: 56px;
+      color: var(--bg-0);
+      font-weight: 700;
+      border: 4px solid var(--bg-0);
+      flex-shrink: 0;
+    }
+    .me-info {
+      flex: 1;
+      padding-bottom: var(--space-3);
+      min-width: 200px;
+    }
+    .me-info h1 {
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: var(--space-1);
+    }
+    .me-info .bio {
+      color: var(--fg-mute);
+      font-size: 14px;
+    }
+    .me-actions {
+      padding-bottom: var(--space-3);
+    }
+    .me-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-3);
+      padding: var(--space-5);
+      margin: var(--space-5) 0;
+    }
+    .me-stat strong {
+      display: block;
+      font-size: 24px;
+      color: var(--accent);
+      line-height: 1.1;
+    }
+    .me-stat span {
+      font-size: 12px;
+      color: var(--fg-mute);
+    }
+    .me-tabs {
+      display: flex;
+      gap: var(--space-2);
+      border-bottom: 1px solid var(--glass-border);
+      margin-bottom: var(--space-5);
+      overflow-x: auto;
+    }
+    .me-tab {
+      padding: var(--space-3) var(--space-5);
+      background: transparent;
+      color: var(--fg-mute);
+      border: none;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+    .me-tab[aria-selected="true"] {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    .me-tab:hover:not([aria-selected="true"]) {
+      color: var(--fg);
+    }
+    .me-panel {
+      min-height: 240px;
+    }
+    .me-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: var(--space-4);
+    }
+    .me-card {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+      padding: var(--space-5);
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      -webkit-backdrop-filter: blur(var(--blur));
+      backdrop-filter: blur(var(--blur));
+      text-decoration: none;
+      color: var(--fg);
+      transition: all 0.2s ease;
+    }
+    .me-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--accent);
+      text-decoration: none;
+    }
+    .me-card .icon {
+      font-size: 32px;
+    }
+    .me-card h4 {
+      font-size: 15px;
+      font-weight: 700;
+    }
+    .me-card p {
+      color: var(--fg-mute);
+      font-size: 13px;
+      flex: 1;
+    }
+    .me-card .meta {
+      font-size: 12px;
+      color: var(--fg-dim);
+      padding-top: var(--space-2);
+      border-top: 1px solid var(--glass-border);
+    }
+    .me-follow {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-3);
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+    }
+    .me-follow .av {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      display: grid;
+      place-items: center;
+      color: var(--bg-0);
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .me-follow .info { flex: 1; }
+    .me-follow .nm { font-size: 14px; font-weight: 600; }
+    .me-follow .bi { font-size: 12px; color: var(--fg-mute); }
+    .me-follow button {
+      padding: 4px 12px;
+      font-size: 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--glass-border);
+      background: var(--glass);
+      color: var(--fg-mute);
+      cursor: pointer;
+    }
+    .me-follow button.is-following {
+      background: rgba(125, 249, 255, 0.15);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .me-empty {
+      text-align: center;
+      padding: var(--space-9) var(--space-5);
+      color: var(--fg-mute);
+    }
+    .me-empty .icon { font-size: 48px; opacity: 0.5; margin-bottom: var(--space-3); }
+
+    @media (max-width: 768px) {
+      .me-cover { height: 140px; }
+      .me-head { flex-direction: column; align-items: stretch; gap: var(--space-3); margin-top: -40px; }
+      .me-avatar { width: 80px; height: 80px; font-size: 36px; }
+      .me-actions { padding-bottom: 0; }
+      .me-stats { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="canvas-bg" aria-hidden="true">
+    <canvas id="cosmic-canvas"></canvas>
+  </div>
+
+  <header class="site-header">
+    <a href="./index.html" class="brand" aria-label="AI 未来星域社区">
+      <span class="brand-mark">✦</span>
+      <span class="brand-text">AI 未来星域社区</span>
+    </a>
+    <nav class="site-nav" aria-label="主导航">
+      <a href="./index.html">社区</a>
+      <a href="./resource.html">知识</a>
+      <a href="./tools.html">工具</a>
+      <button id="nav-auth" class="btn btn-ghost" type="button">登出</button>
+    </nav>
+  </header>
+
+  <main class="me-wrap">
+    <div class="me-cover" aria-hidden="true"></div>
+
+    <div class="me-head">
+      <div class="me-avatar" id="me-avatar">✦</div>
+      <div class="me-info">
+        <h1 id="me-name">加载中…</h1>
+        <p class="bio" id="me-bio">这个人很懒，还没写简介</p>
+      </div>
+      <div class="me-actions">
+        <button class="btn btn-ghost" id="edit-profile" type="button">编辑资料</button>
+      </div>
+    </div>
+
+    <section class="me-stats glass" aria-label="个人统计">
+      <div class="me-stat"><strong id="s-followers">0</strong><span>粉丝</span></div>
+      <div class="me-stat"><strong id="s-following">0</strong><span>关注</span></div>
+      <div class="me-stat"><strong id="s-resources">0</strong><span>作品</span></div>
+      <div class="me-stat"><strong id="s-likes">0</strong><span>获赞</span></div>
+    </section>
+
+    <div class="me-tabs" role="tablist">
+      <button class="me-tab" data-tab="works" aria-selected="true" role="tab">作品</button>
+      <button class="me-tab" data-tab="favs" role="tab">收藏</button>
+      <button class="me-tab" data-tab="follows" role="tab">关注</button>
+      <button class="me-tab" data-tab="drafts" role="tab">草稿</button>
+    </div>
+
+    <div class="me-panel" id="panel-works" role="tabpanel"></div>
+    <div class="me-panel" id="panel-favs" role="tabpanel" hidden></div>
+    <div class="me-panel" id="panel-follows" role="tabpanel" hidden></div>
+    <div class="me-panel" id="panel-drafts" role="tabpanel" hidden></div>
+  </main>
+
+  <footer class="site-footer">
+    <p>✦ AI 未来星域社区 · 个人主页</p>
+  </footer>
+
+  <script type="module" src="app.js"></script>
+  <script type="module" src="cosmic-scene.js"></script>
+  <script type="module">
+    // § Mock 数据（演示用 · 阶段 2 接 Supabase）
+    const MOCK_RESOURCES = [
+      { id: 'r01', icon: '💬', title: '30+ ChatGPT 提效 Prompt 模板', type: 'Prompt', meta: '3 天前 · 收藏 12' },
+      { id: 'r02', icon: '🎨', title: 'Midjourney 角色一致性 Prompt', type: 'Prompt', meta: '上周 · 收藏 8' },
+      { id: 'r03', icon: '⌨️', title: 'Cursor 实战指南 · 写代码 ×10', type: 'Tool', meta: '2 周前 · 收藏 24' },
+    ];
+    const MOCK_DRAFTS = [
+      { id: 'd01', icon: '📝', title: 'GPT-4o 创意写作 Prompt', desc: '还在打磨中…', meta: '昨天编辑' },
+      { id: 'd02', icon: '🤖', title: 'AI 副业变现路径', desc: '初稿，待补充案例', meta: '3 天前' },
+    ];
+    const MOCK_FOLLOWS = [
+      { id: 'u01', name: '星域小编', bio: 'AI 未来星域社区官方账号', following: true },
+      { id: 'u02', name: '小G军师', bio: '温柔甜美 + 东北老妹儿敞亮', following: true },
+      { id: 'u03', name: 'Codex 程序员', bio: 'AI 辅助开发 · 写代码 ×10', following: false },
+      { id: 'u04', name: '社区观察员', bio: '观察 + 思考 + 记录', following: false },
+    ];
+
+    function readJSON(key, fallback = null) {
+      try { return JSON.parse(localStorage.getItem(key) || 'null') ?? fallback; }
+      catch { return fallback; }
+    }
+    function escape(s) {
+      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const me = getCurrentUser();
+      if (!me) {
+        showInline('请先登录');
+        return;
+      }
+
+      // § 顶部用户信息
+      document.getElementById('me-avatar').textContent = (me.username || '✦').slice(0, 1).toUpperCase();
+      document.getElementById('me-name').textContent = me.username;
+      document.getElementById('me-bio').textContent = me.bio || `${me.username} · 新加入 AI 未来星域社区`;
+
+      // § 统计
+      const favs = readJSON('cosmic.favs', []);
+      const likes = readJSON('cosmic.likes', {});
+      const likesTotal = Object.values(likes).reduce((a, b) => a + b, 0);
+      const resources = readJSON('cosmic.resources', []);
+      const myRes = resources.filter(r => r.userId === me.id);
+      document.getElementById('s-followers').textContent = me.followers || 0;
+      document.getElementById('s-following').textContent = me.following || 0;
+      document.getElementById('s-resources').textContent = myRes.length + MOCK_RESOURCES.length;
+      document.getElementById('s-likes').textContent = likesTotal;
+
+      // § Tab 渲染
+      renderWorks(myRes);
+      renderFavs(favs);
+      renderFollows();
+      renderDrafts(myRes);
+
+      // § Tab 切换
+      document.querySelectorAll('.me-tab').forEach(t => {
+        t.addEventListener('click', () => {
+          const tab = t.dataset.tab;
+          document.querySelectorAll('.me-tab').forEach(q => q.setAttribute('aria-selected', q === t ? 'true' : 'false'));
+          document.querySelectorAll('.me-panel').forEach(p => p.hidden = true);
+          document.getElementById('panel-' + tab).hidden = false;
+        });
+      });
+
+      // § 编辑资料（mock）
+      document.getElementById('edit-profile').addEventListener('click', () => {
+        const bio = prompt('修改你的简介：', me.bio || '');
+        if (bio !== null) {
+          me.bio = bio;
+          writeJSONLocal('cosmic.currentUser', me);
+          // 同步更新 users 表
+          const users = readJSON('cosmic.users', []);
+          const idx = users.findIndex(u => u.id === me.id);
+          if (idx >= 0) {
+            users[idx].bio = bio;
+            writeJSONLocal('cosmic.users', users);
+          }
+          document.getElementById('me-bio').textContent = bio;
+          showInline('简介已更新');
+        }
+      });
+    });
+
+    function writeJSONLocal(key, val) {
+      localStorage.setItem(key, JSON.stringify(val));
+    }
+
+    function renderWorks(myRes) {
+      const panel = document.getElementById('panel-works');
+      const all = [...myRes, ...MOCK_RESOURCES];
+      if (all.length === 0) {
+        panel.innerHTML = emptyHtml('📦', '还没有作品', '试试 <a href="./upload.html">上传资源</a>');
+        return;
+      }
+      panel.innerHTML = `<div class="me-grid">${all.map(r => `
+        <a class="me-card" href="./resource-detail.html?id=${encodeURIComponent(r.id)}">
+          <div class="icon" aria-hidden="true">${r.icon}</div>
+          <h4>${escape(r.title)}</h4>
+          <p>${escape(r.type || '')}</p>
+          <div class="meta">${escape(r.meta || '')}</div>
+        </a>
+      `).join('')}</div>`;
+    }
+
+    function renderFavs(favs) {
+      const panel = document.getElementById('panel-favs');
+      if (favs.length === 0) {
+        panel.innerHTML = emptyHtml('☆', '还没有收藏', '去 <a href="./resource.html">资源页</a> 找点好东西');
+        return;
+      }
+      // 把 fav ID 映射到资源 mock 数据（演示用）
+      const RES_MAP = {
+        '01': { icon: '💬', title: '30+ ChatGPT 提效 Prompt 模板', type: 'Prompt' },
+        '02': { icon: '📸', title: 'Stable Diffusion 摄影 Prompt', type: 'Prompt' },
+        '04': { icon: '🦙', title: 'Llama 3 开源大模型指南', type: 'Model' },
+        '06': { icon: '⌨️', title: 'Cursor 实战指南 · 写代码 ×10', type: 'Tool' },
+        '08': { icon: '⚡', title: 'n8n + AI 自动化工作流', type: 'Tool' },
+        '11': { icon: '🎨', title: 'AI 生成艺术 Top 100 案例', type: 'Inspiration' },
+      };
+      const items = favs.map(id => RES_MAP[id] || { icon: '✦', title: `资源 ${id}`, type: 'Unknown' });
+      panel.innerHTML = `<div class="me-grid">${items.map(r => `
+        <a class="me-card" href="./resource-detail.html?id=${encodeURIComponent(favs[items.indexOf(r)])}">
+          <div class="icon" aria-hidden="true">${r.icon}</div>
+          <h4>${escape(r.title)}</h4>
+          <p>${escape(r.type)}</p>
+          <div class="meta">★ 已收藏</div>
+        </a>
+      `).join('')}</div>`;
+    }
+
+    function renderFollows() {
+      const panel = document.getElementById('panel-follows');
+      panel.innerHTML = `<div style="display:flex; flex-direction:column; gap:8px;">${MOCK_FOLLOWS.map(u => `
+        <div class="me-follow">
+          <div class="av">${escape(u.name.slice(0,1))}</div>
+          <div class="info">
+            <div class="nm">${escape(u.name)}</div>
+            <div class="bi">${escape(u.bio)}</div>
+          </div>
+          <button class="${u.following ? 'is-following' : ''}" data-id="${u.id}">
+            ${u.following ? '已关注' : '+ 关注'}
+          </button>
+        </div>
+      `).join('')}</div>`;
+      panel.querySelectorAll('button').forEach(b => {
+        b.addEventListener('click', () => {
+          b.classList.toggle('is-following');
+          b.textContent = b.classList.contains('is-following') ? '已关注' : '+ 关注';
+        });
+      });
+    }
+
+    function renderDrafts(myRes) {
+      const panel = document.getElementById('panel-drafts');
+      const drafts = myRes.filter(r => r.status === 'draft');
+      const all = [...drafts, ...MOCK_DRAFTS];
+      if (all.length === 0) {
+        panel.innerHTML = emptyHtml('📝', '草稿箱空着', '试试 <a href="./upload.html">新建草稿</a>');
+        return;
+      }
+      panel.innerHTML = `<div class="me-grid">${all.map(r => `
+        <a class="me-card" href="./upload.html?edit=${encodeURIComponent(r.id)}">
+          <div class="icon" aria-hidden="true">${r.icon}</div>
+          <h4>${escape(r.title)}</h4>
+          <p>${escape(r.desc || '')}</p>
+          <div class="meta">${escape(r.meta || '')} · 草稿</div>
+        </a>
+      `).join('')}</div>`;
+    }
+
+    function emptyHtml(icon, msg, hint) {
+      return `<div class="me-empty">
+        <div class="icon" aria-hidden="true">${icon}</div>
+        <p>${msg}</p>
+        <p>${hint}</p>
+      </div>`;
+    }
+
+    function showInline(text) {
+      const b = document.createElement('div');
+      b.textContent = text;
+      b.style.cssText = `
+        position: fixed; top: 80px; left: 50%; transform: translateX(-50%);
+        padding: 12px 24px; border-radius: 12px; z-index: 100;
+        background: rgba(107, 217, 104, 0.2); border: 1px solid var(--success);
+        -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+        font-weight: 600;`;
+      document.body.appendChild(b);
+      setTimeout(() => b.remove(), 2500);
+    }
+  </script>
+</body>
+</html>

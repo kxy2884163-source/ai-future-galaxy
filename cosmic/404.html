@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <base href="/cosmic/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>404 · 页面走丢了 · AI 未来星域社区</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .error-wrap {
+      min-height: calc(100vh - var(--header-h));
+      display: grid;
+      place-items: center;
+      padding: var(--space-6);
+    }
+    .error-content {
+      max-width: 600px;
+      width: 100%;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+      align-items: center;
+    }
+    .error-glyph {
+      font-size: 80px;
+      filter: drop-shadow(0 0 16px rgba(125, 249, 255, 0.3));
+      animation: floaty 4s ease-in-out infinite;
+    }
+    .error-code {
+      font-size: clamp(96px, 18vw, 180px);
+      font-weight: 900;
+      line-height: 1;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 32px rgba(125, 249, 255, 0.3));
+    }
+    .error-content h1 {
+      font-size: clamp(24px, 4vw, 32px);
+      font-weight: 800;
+    }
+    .error-sub {
+      font-size: 16px;
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .error-desc {
+      color: var(--fg-mute);
+      font-size: 14px;
+      max-width: 460px;
+    }
+    .error-actions {
+      display: flex;
+      gap: var(--space-3);
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: var(--space-4);
+    }
+  </style>
+</head>
+<body>
+  <div class="canvas-bg" aria-hidden="true">
+    <canvas id="cosmic-canvas"></canvas>
+  </div>
+
+  <header class="site-header">
+    <a href="./index.html" class="brand" aria-label="AI 未来星域社区">
+      <span class="brand-mark">✦</span>
+      <span class="brand-text">AI 未来星域社区</span>
+    </a>
+    <nav class="site-nav" aria-label="主导航">
+      <a href="./index.html">社区</a>
+      <a href="./resource.html">知识</a>
+      <a href="./tools.html">工具</a>
+      <button id="nav-auth" class="btn btn-ghost" type="button">登录</button>
+    </nav>
+  </header>
+
+  <main class="error-wrap">
+    <div class="error-content">
+      <div class="error-glyph" aria-hidden="true">🛰️</div>
+      <div class="error-code">404</div>
+      <h1>页面走丢了</h1>
+      <p class="error-sub">✦ 你访问的页面不存在</p>
+      <p class="error-desc">
+        可能是链接过期、地址输错，或者资源已被移除。
+        回到主页继续探索，或者去别的地方逛逛。
+      </p>
+      <div class="error-actions">
+        <a href="./index.html" class="btn btn-primary">返回首页</a>
+        <a href="./resource.html" class="btn btn-ghost">浏览知识</a>
+        <a href="./tools.html" class="btn btn-ghost">查看工具</a>
+        <button onclick="history.back(); return false;" class="btn btn-ghost" type="button">← 上一步</button>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>✦ AI 未来星域社区 · Lost in space?</p>
+  </footer>
+
+  <script type="module" src="app.js"></script>
+  <script type="module" src="cosmic-scene.js"></script>
+</body>
+</html>
