@@ -622,6 +622,62 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 // ==========================================================
+// §7 数据查询 API（公开读 · RLS 自动放行）
+// ==========================================================
+// 拍板：2026-07-31 P0 · 真实数据录入
+// 前端从 MOCK 切换到 Supabase 实时查询
+// ==========================================================
+
+// 7.1 资源列表（resource.html 用）
+export async function fetchResources({ type = null, search = null } = {}) {
+  let query = supabase
+    .from('resources')
+    .select('id, type, title, description, icon, tags, likes_count, favorites_count, downloads_count, views_count, created_at')
+    .eq('is_draft', false)
+    .order('created_at', { ascending: false });
+  if (type && type !== 'all') query = query.eq('type', type);
+  if (search) query = query.ilike('title', `%${search}%`);
+  const { data, error } = await query;
+  if (error) throw new Error(error.message);
+  return data || [];
+}
+
+// 7.2 单个资源（resource-detail.html 用 · UUID 查询）
+export async function fetchResourceById(id) {
+  const { data, error } = await supabase
+    .from('resources')
+    .select('*')
+    .eq('id', id)
+    .single();
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+// 7.3 同 type 相关资源（related 列表 · 排除当前）
+export async function fetchRelatedResources(type, excludeId, limit = 4) {
+  const { data, error } = await supabase
+    .from('resources')
+    .select('id, type, title, description, icon, likes_count, created_at')
+    .eq('type', type)
+    .eq('is_draft', false)
+    .neq('id', excludeId)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  if (error) throw new Error(error.message);
+  return data || [];
+}
+
+// 7.4 工具列表（tools.html 用 · 按 sort_order 排序）
+export async function fetchTools() {
+  const { data, error } = await supabase
+    .from('tools')
+    .select('id, slug, name, description, category, icon, url, rating, sort_order')
+    .order('sort_order', { ascending: true });
+  if (error) throw new Error(error.message);
+  return data || [];
+}
+
+// ==========================================================
 // §8 通用 banner / toast（role=status + aria-live=polite）
 // ==========================================================
 export function showBanner(text, type = 'info') {

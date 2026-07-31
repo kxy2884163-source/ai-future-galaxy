@@ -1,0 +1,18 @@
+{
+  "name": "ai-future-galaxy",
+  "version": "3.0.0",
+  "private": true,
+  "description": "AI 未来星域社区 · 全栈 web app（Vercel + Supabase）",
+  "scripts": {
+    "dev": "node server.js",
+    "seed": "node scripts/seed-p0-data.mjs",
+    "verify": "bash scripts/verify.sh",
+    "deploy": "bash scripts/deploy.sh"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.111.0"
+  }
+}

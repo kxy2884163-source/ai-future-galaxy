@@ -354,51 +354,59 @@
   <script type="module" src="cosmic-scene.js"></script>
   <script type="module">
     // § Supabase 集成
-    import { addComment, getComments as getCommentsSupabase } from './app.js';
+    import { addComment, getComments as getCommentsSupabase, fetchResourceById, fetchRelatedResources } from './app.js';
 
-
-    // § Mock 资源详情（跟 resource.html 同源 · 12 张卡）
-    const DATA = {
-      '01': { type: 'Prompt', title: '30+ ChatGPT 提效 Prompt 模板', icon: '💬', fav: 1280, dl: 8600, about: '从写作到编程，从学习到规划，直接套用。每个模板都经过实战验证，附带使用场景说明。' },
-      '02': { type: 'Prompt', title: 'Stable Diffusion 摄影 Prompt 大全', icon: '📸', fav: 950,  dl: 5200, about: '真实摄影风格关键词组合（人像/风景/街拍），配合权重调节和负面提示词技巧。' },
-      '03': { type: 'Prompt', title: 'Midjourney 角色一致性 Prompt 技巧', icon: '🎭', fav: 730,  dl: 4100, about: '多视图角色设计 · 跨场景一致性 · 服装道具变更而不变脸。' },
-      '04': { type: 'Model', title: 'Llama 3 开源大模型完全指南', icon: '🦙', fav: 1820, dl: 9800, about: '从环境搭建到本地部署，从 LoRA 微调到 RAG 集成，配完整代码示例。' },
-      '05': { type: 'Model', title: 'Mixtral 8x7B 模型对比评测', icon: '🌪️', fav: 670,  dl: 3100, about: '在 8 个常用任务上跟 GPT-3.5 / Claude Haiku / Llama 3 全方位对比。' },
-      '06': { type: 'Tool', title: 'Cursor 实战指南 · 写代码 ×10', icon: '⌨️', fav: 2100, dl: 12500, about: '从界面认识、Composing 模式、Cmd-K 重构，到多文件 Agent 协作的全套实战。' },
-      '07': { type: 'Tool', title: 'Perplexity 深度用法 · 替代 Google', icon: '🔍', fav: 1340, dl: 7400, about: 'Pro Search · Focus · Spaces · Collections 全功能详解，配 10 个场景模板。' },
-      '08': { type: 'Tool', title: 'n8n + AI 自动化工作流', icon: '⚡', fav: 880,  dl: 4600, about: '把 ChatGPT / Claude / Notion / Slack 串起来，每天省 3 小时手工操作。' },
-      '09': { type: 'Dataset', title: 'Alpaca 数据集 · 5 万条指令微调', icon: '📦', fav: 540, dl: 2900, about: 'Stanford 开源指令微调数据集，含 GPT-3.5 生成的 52K 条 instruction-response 对。' },
-      '10': { type: 'Dataset', title: 'ShareGPT 中文翻译版 · 8 万条', icon: '💾', fav: 620, dl: 3400, about: '高质量多轮对话数据集，中文翻译版本，支持中文 LLM 微调。' },
-      '11': { type: 'Inspiration', title: 'AI 生成艺术 Top 100 案例', icon: '🎨', fav: 1560, dl: 6900, about: '从 DALL·E 到 Midjourney · 从 Sora 到 Runway · 创意灵感与提示词解析。' },
-      '12': { type: 'Inspiration', title: 'AI 短剧剧本创作实战 30 篇', icon: '🎬', fav: 920, dl: 4800, about: '结构化提示词 + 完整剧本 · 涵盖都市 / 古风 / 科幻 / 喜剧四大题材。' },
+    // § 类型中英文映射（数据库存英文 · UI 显示中文）
+    const TYPE_LABEL = {
+      prompt: 'Prompt', model: 'Model', tool: 'Tool',
+      dataset: 'Dataset', inspiration: 'Inspiration',
     };
 
-    document.addEventListener('DOMContentLoaded', () => {
-      const params = new URLSearchParams(location.search);
-      const id = params.get('id') || '01';
-      const d = DATA[id] || DATA['01'];
+    function escape(s) {
+      return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
 
-      document.getElementById('cover').textContent = d.icon;
-      document.getElementById('res-type').textContent = d.type;
+    document.addEventListener('DOMContentLoaded', async () => {
+      const params = new URLSearchParams(location.search);
+      const id = params.get('id');
+
+      // § 加载资源详情（Supabase · UUID 查询）
+      let d;
+      try {
+        d = await fetchResourceById(id);
+      } catch (e) {
+        console.warn('fetchResourceById failed:', e);
+        document.getElementById('res-title').textContent = '资源加载失败';
+        document.getElementById('res-desc').textContent = '请检查链接或稍后重试';
+        return;
+      }
+
+      const typeLabel = TYPE_LABEL[d.type] || d.type;
+
+      document.getElementById('cover').textContent = d.icon || '✦';
+      document.getElementById('res-type').textContent = typeLabel;
       document.getElementById('res-title').textContent = d.title;
-      document.getElementById('res-desc').textContent = d.about;
-      document.getElementById('res-about').textContent = d.about;
+      document.getElementById('res-desc').textContent = d.description || '';
+      document.getElementById('res-about').textContent = d.description || '';
       document.getElementById('bc-title').textContent = d.title;
       document.title = d.title + ' · AI 未来星域社区';
-      document.getElementById('meta-fav').textContent = d.fav.toLocaleString();
-      document.getElementById('meta-dl').textContent = d.dl.toLocaleString();
+      document.getElementById('meta-fav').textContent = (d.likes_count || 0).toLocaleString();
+      document.getElementById('meta-dl').textContent = (d.downloads_count || 0).toLocaleString();
 
-      // 相关推荐 — 同类型 4 个
-      const related = Object.entries(DATA)
-        .filter(([k, v]) => v.type === d.type && k !== id)
-        .slice(0, 4);
-      const relHtml = related.map(([k, v]) => `
-        <a class="related-item" href="./resource-detail.html?id=${k}">
-          <div style="font-size: 28px; margin-bottom: 6px;">${v.icon}</div>
-          <div style="font-size: 13px; font-weight: 600;">${v.title}</div>
-        </a>
-      `).join('');
-      document.getElementById('related').innerHTML = relHtml || '<p style="color: var(--fg-mute)">暂无相关推荐</p>';
+      // § 相关推荐 · 同类型其他资源（Supabase · UUID 列表）
+      try {
+        const related = await fetchRelatedResources(d.type, d.id, 4);
+        const relHtml = related.map(r => `
+          <a class="related-item" href="./resource-detail.html?id=${encodeURIComponent(r.id)}">
+            <div style="font-size: 28px; margin-bottom: 6px;">${escape(r.icon || '✦')}</div>
+            <div style="font-size: 13px; font-weight: 600;">${escape(r.title)}</div>
+          </a>
+        `).join('');
+        document.getElementById('related').innerHTML = relHtml || '<p style="color: var(--fg-mute)">暂无相关推荐</p>';
+      } catch (e) {
+        console.warn('fetchRelatedResources failed:', e);
+        document.getElementById('related').innerHTML = '<p style="color: var(--fg-mute)">暂无相关推荐</p>';
+      }
 
       // § 评论系统（Supabase 主流 + localStorage backup）
       const LS_COMMENTS = 'cosmic.comments';

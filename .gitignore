@@ -54,3 +54,6 @@ supabase/.temp/
 # 环境变量（secret key）
 .env*
 !.env.example
+
+# Supabase CLI error logs
+supabase-keys.json

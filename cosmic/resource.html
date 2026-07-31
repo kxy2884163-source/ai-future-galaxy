@@ -294,23 +294,12 @@
   <script type="module" src="cosmic-scene.js"></script>
   <script type="module">
     // § Supabase 集成（从 app.js 导入 async API）
-    import { toggleResourceFav, getUserResourceFavs, toggleLike, getUserLikes } from './app.js';
+    import { toggleResourceFav, getUserResourceFavs, toggleLike, getUserLikes, fetchResources } from './app.js';
 
-    // § Mock 数据（12 张资源卡 · 跟 PRD § 模块 2 对齐）
-    const RESOURCES = [
-      { id: '01', type: 'prompt',    title: '30+ ChatGPT 提效 Prompt 模板', desc: '从写作到编程，从学习到规划，直接套用。', icon: '💬', fav: 1280, dl: 8600 },
-      { id: '02', type: 'prompt',    title: 'Stable Diffusion 摄影 Prompt 大全', desc: '真实摄影风格关键词组合（人像/风景/街拍）。', icon: '📸', fav: 950,  dl: 5200 },
-      { id: '03', type: 'prompt',    title: 'Midjourney 角色一致性 Prompt 技巧', desc: '多视图角色设计 · 跨场景一致性。', icon: '🎭', fav: 730,  dl: 4100 },
-      { id: '04', type: 'model',     title: 'Llama 3 开源大模型完全指南', desc: '本地部署 + 微调 + 应用案例。', icon: '🦙', fav: 1820, dl: 9800 },
-      { id: '05', type: 'model',     title: 'Mixtral 8x7B 模型对比评测', desc: '跟 GPT-3.5 / Claude Haiku 全方位对比。', icon: '🌪️', fav: 670,  dl: 3100 },
-      { id: '06', type: 'tool',      title: 'Cursor 实战指南 · 写代码 ×10', desc: '从入门到精通 · Composing / Debug / Refactor。', icon: '⌨️', fav: 2100, dl: 12500 },
-      { id: '07', type: 'tool',      title: 'Perplexity 深度用法 · 替代 Google', desc: 'Pro Search · Focus · Spaces 全攻略。', icon: '🔍', fav: 1340, dl: 7400 },
-      { id: '08', type: 'tool',      title: 'n8n + AI 自动化工作流', desc: '把多个 AI 工具串起来，每天省 3 小时。', icon: '⚡', fav: 880,  dl: 4600 },
-      { id: '09', type: 'dataset',   title: 'Alpaca 数据集 · 5 万条指令微调', desc: '开源指令微调数据集 · LLaMA 训练必备。', icon: '📦', fav: 540,  dl: 2900 },
-      { id: '10', type: 'dataset',   title: 'ShareGPT 中文翻译版 · 8 万条', desc: '高质量多轮对话数据集，支持中文微调。', icon: '💾', fav: 620,  dl: 3400 },
-      { id: '11', type: 'inspiration', title: 'AI 生成艺术 Top 100 案例', desc: '从 DALL·E 到 Midjourney · 创意灵感。', icon: '🎨', fav: 1560, dl: 6900 },
-      { id: '12', type: 'inspiration', title: 'AI 短剧剧本创作实战 30 篇', desc: '结构化提示词 + 完整剧本 · 直接复用。', icon: '🎬', fav: 920,  dl: 4800 },
-    ];
+    // § 资源列表（异步从 Supabase 加载 · 2026-07-31 P0 替换 MOCK）
+    let RESOURCES = [];
+    let isLoading = true;
+    let loadError = null;
 
     // § 渲染
     let currentCat = 'all';
@@ -330,6 +319,19 @@
         userLikes = new Map(likes.map(id => [id, 1]));
       } catch (e) {
         console.warn('refreshUserData:', e);
+      }
+    }
+
+    async function loadResources() {
+      try {
+        RESOURCES = await fetchResources();
+        isLoading = false;
+        loadError = null;
+      } catch (e) {
+        console.warn('fetchResources failed:', e);
+        isLoading = false;
+        loadError = e.message || '加载失败';
+        RESOURCES = [];
       }
     }
 
@@ -366,7 +368,7 @@
               localLikes = ls[r.id] || 0;
             } catch {}
           }
-          const likeCount = localLikes + r.fav;
+          const likeCount = localLikes + (r.likes_count || 0);
           return `
           <div class="res-card-wrap">
             <a class="res-card" href="./resource-detail.html?id=${encodeURIComponent(r.id)}">
@@ -374,10 +376,10 @@
               <div class="res-body">
                 <span class="res-type">${escapeType(r.type)}</span>
                 <h3 class="res-title">${escape(r.title)}</h3>
-                <p class="res-desc">${escape(r.desc)}</p>
+                <p class="res-desc">${escape(r.description || '')}</p>
                 <div class="res-meta">
-                  <span>★ ${r.fav.toLocaleString()}</span>
-                  <span>⬇ ${r.dl.toLocaleString()}</span>
+                  <span>★ ${(r.likes_count || 0).toLocaleString()}</span>
+                  <span>⬇ ${(r.downloads_count || 0).toLocaleString()}</span>
                 </div>
               </div>
             </a>
@@ -482,6 +484,7 @@
 
     // § Bind
     document.addEventListener('DOMContentLoaded', async () => {
+      await loadResources();
       await refreshUserData();
       // filter pills
       document.querySelectorAll('.filter-pill').forEach(p => {
