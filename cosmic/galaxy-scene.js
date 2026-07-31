@@ -1,37 +1,42 @@
 // ==========================================================
-// AI 未来星域社区 · Galaxy v3 主线程
-// 2026-08-01 · Path C · Web Worker + OffscreenCanvas
-// 仿 Blueyard 风格 · 单屏 Hero · 漩涡星系 + 极简文字
-// ==========================================================
-//
-// 架构：
-// - 主线程：DOM 交互 + 鼠标事件 + resize
-// - Worker（galaxy-worker.js）：粒子物理 + 渲染（OffscreenCanvas）
-// - 兼容性：OffscreenCanvas 不支持 → 回退主线程直接画
+// AI 未来星域社区 · Galaxy v3 主线程渲染
+// 2026-08-01 · 仿 Blueyard 风格 · 漩涡星系 + 抛射流 + 自转
+// 路径：主线程直接渲染（20000 粒子 · 60fps）
 // ==========================================================
 
+const PARTICLE_COUNT = 20000;
+const CORE_COUNT = 2000;
+const SPIRAL_COUNT = 14000;
+const HALO_COUNT = 2500;
+const EJECTA_COUNT = 1500;
+
 let canvas = null;
-let worker = null;
-let mouse = { x: -10000, y: -10000, active: false, vx: 0, vy: 0 };
-let mouseTarget = { x: -10000, y: -10000 };
-let lastFrameTime = 0;
-let canvasW = 0;
-let canvasH = 0;
+let ctx = null;
+let width = 0;
+let height = 0;
+let dpr = 1;
+let particles = [];
 let rafId = null;
-let workerReady = false;
-let fallbackParticles = null;
+let mouse = { x: -10000, y: -10000, active: false };
+let mouseTarget = { x: -10000, y: -10000 };
+let startTime = 0;
 
 export function initGalaxyScene(canvasEl) {
   if (!canvasEl) return null;
   canvas = canvasEl;
 
-  // 初始尺寸
+  ctx = canvas.getContext('2d');
+  if (!ctx) {
+    console.warn('Galaxy v3: canvas 2d context failed');
+    return null;
+  }
+
   function resize() {
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    canvasW = window.innerWidth * dpr;
-    canvasH = window.innerHeight * dpr;
-    canvas.width = canvasW;
-    canvas.height = canvasH;
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    width = window.innerWidth * dpr;
+    height = window.innerHeight * dpr;
+    canvas.width = width;
+    canvas.height = height;
     canvas.style.width = window.innerWidth + 'px';
     canvas.style.height = window.innerHeight + 'px';
   }
@@ -40,23 +45,21 @@ export function initGalaxyScene(canvasEl) {
   window.addEventListener('orientationchange', resize);
 
   // 鼠标 / 触摸交互
-  canvas.style.pointerEvents = 'auto';
   canvas.addEventListener('mousemove', (e) => {
     const rect = canvas.getBoundingClientRect();
-    mouseTarget.x = (e.clientX - rect.left) * (canvasW / rect.width);
-    mouseTarget.y = (e.clientY - rect.top) * (canvasH / rect.height);
+    mouseTarget.x = (e.clientX - rect.left) * dpr;
+    mouseTarget.y = (e.clientY - rect.top) * dpr;
     mouse.active = true;
   });
   canvas.addEventListener('mouseleave', () => {
     mouse.active = false;
   });
-  // 触摸支持（移动端）
   canvas.addEventListener('touchmove', (e) => {
     if (e.touches.length > 0) {
       const rect = canvas.getBoundingClientRect();
       const t = e.touches[0];
-      mouseTarget.x = (t.clientX - rect.left) * (canvasW / rect.width);
-      mouseTarget.y = (t.clientY - rect.top) * (canvasH / rect.height);
+      mouseTarget.x = (t.clientX - rect.left) * dpr;
+      mouseTarget.y = (t.clientY - rect.top) * dpr;
       mouse.active = true;
     }
   }, { passive: true });
@@ -64,120 +67,214 @@ export function initGalaxyScene(canvasEl) {
     mouse.active = false;
   }, { passive: true });
 
-  // 偏好 reduced-motion：直接静态渲染 1 帧
+  // 初始化粒子
+  initParticles();
+
+  // reduced-motion 检查
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    // 直接画 1 帧静态
-    return renderStaticFrame();
+    renderFrame(0);
+    return;
   }
 
-  // 尝试 OffscreenCanvas + Worker
-  if (typeof canvas.transferControlToOffscreen === 'function' && typeof Worker === 'function') {
-    try {
-      const offscreen = canvas.transferControlToOffscreen();
-      worker = new Worker(new URL('./galaxy-worker.js', import.meta.url), { type: 'module' });
+  startTime = performance.now();
+  rafId = requestAnimationFrame(loop);
+}
 
-      worker.addEventListener('message', (e) => {
-        // Worker ready（可以加握手）
-      });
+function initParticles() {
+  particles = [];
+  const cx = width * 0.7;  // 漩涡偏右 70%
+  const cy = height * 0.5; // 漩涡垂直居中
 
-      worker.postMessage({
-        type: 'init',
-        canvas: offscreen,
-        width: canvasW,
-        height: canvasH,
-      }, [offscreen]);
+  // 1. 亮核
+  for (let i = 0; i < CORE_COUNT; i++) {
+    const r = Math.random() * 30;
+    const theta = Math.random() * Math.PI * 2;
+    particles.push({
+      type: 'core',
+      r, theta,
+      baseR: r,
+      cx, cy,
+      color: pickCoreColor(),
+      size: (1 + Math.random() * 1.5) * dpr,
+      opacity: 0.7 + Math.random() * 0.3,
+    });
+  }
 
-      workerReady = true;
-      lastFrameTime = performance.now();
-      rafId = requestAnimationFrame(mainLoop);
-      return;
-    } catch (e) {
-      console.warn('Galaxy v3: OffscreenCanvas failed, fallback to main thread', e);
-      worker = null;
-      workerReady = false;
+  // 2. 螺旋臂（对数螺旋 · cyan/blue 主导）
+  for (let i = 0; i < SPIRAL_COUNT; i++) {
+    const arm = Math.random() < 0.5 ? 0 : Math.PI;
+    const t = Math.random();
+    const r = 12 * Math.exp(0.13 * t * 7) + (Math.random() - 0.5) * 18 * dpr;
+    const theta = arm + t * Math.PI * 3.2 + (Math.random() - 0.5) * 0.4;
+    particles.push({
+      type: 'spiral',
+      r, theta,
+      baseR: r,
+      cx, cy,
+      color: pickSpiralColor(r),
+      size: (0.6 + Math.random() * 1.6) * dpr,
+      opacity: 0.4 + Math.random() * 0.4,
+    });
+  }
+
+  // 3. 外圈光晕
+  for (let i = 0; i < HALO_COUNT; i++) {
+    const r = 120 * dpr + Math.random() * 220 * dpr;
+    const theta = Math.random() * Math.PI * 2;
+    particles.push({
+      type: 'halo',
+      r, theta,
+      baseR: r,
+      cx, cy,
+      color: pickHaloColor(),
+      size: (0.5 + Math.random() * 1.4) * dpr,
+      opacity: 0.2 + Math.random() * 0.4,
+    });
+  }
+
+  // 4. 抛射流
+  for (let i = 0; i < EJECTA_COUNT; i++) {
+    const r = 30 * dpr + Math.random() * 40 * dpr;
+    const theta = Math.random() * Math.PI * 2;
+    particles.push({
+      type: 'ejecta',
+      r, theta,
+      baseR: r,
+      cx, cy,
+      color: pickEjectaColor(),
+      size: (0.8 + Math.random() * 1.4) * dpr,
+      opacity: 0.5,
+      life: Math.random(),
+      vTheta: (Math.random() - 0.5) * 0.0008,
+      vR: (0.15 + Math.random() * 0.3) * dpr,
+    });
+  }
+}
+
+function pickCoreColor() {
+  const h = 185 + Math.random() * 10;
+  return `hsla(${h}, 90%, ${75 + Math.random() * 15}%, 1)`;
+}
+
+function pickSpiralColor(r) {
+  const t = Math.min(1, r / (200 * dpr));
+  if (Math.random() < 0.5 - t * 0.3) {
+    return `hsla(${185 + Math.random() * 15}, ${85 + Math.random() * 10}%, ${55 + Math.random() * 20}%, 1)`;
+  } else {
+    return `hsla(${215 + Math.random() * 25}, ${75 + Math.random() * 15}%, ${45 + Math.random() * 25}%, 1)`;
+  }
+}
+
+function pickHaloColor() {
+  const h = 220 + Math.random() * 30;
+  return `hsla(${h}, ${50 + Math.random() * 20}%, ${25 + Math.random() * 20}%, 1)`;
+}
+
+function pickEjectaColor() {
+  if (Math.random() < 0.08) {
+    return `hsla(${325 + Math.random() * 20}, ${80 + Math.random() * 15}%, ${55 + Math.random() * 15}%, 1)`;
+  }
+  const h = Math.random() < 0.5 ? 185 : 215;
+  return `hsla(${h + Math.random() * 15}, ${80 + Math.random() * 10}%, ${55 + Math.random() * 20}%, 1)`;
+}
+
+function loop(now) {
+  // 鼠标插值（让移动更顺滑）
+  mouse.x += (mouseTarget.x - mouse.x) * 0.12;
+  mouse.y += (mouseTarget.y - mouse.y) * 0.12;
+
+  const t = now - startTime;
+  update(t);
+  renderFrame(t);
+  rafId = requestAnimationFrame(loop);
+}
+
+function update(t) {
+  const cx = width * 0.7;
+  const cy = height * 0.5;
+  const rotSpeed = 0.00012;
+
+  for (let i = 0; i < particles.length; i++) {
+    const p = particles[i];
+    p.cx = cx;
+    p.cy = cy;
+
+    if (p.type === 'core') {
+      p.theta += rotSpeed * 1.5;
+    } else if (p.type === 'spiral') {
+      p.theta += rotSpeed;
+      p.r = p.baseR + Math.sin(t * 0.0008 + p.theta * 0.3) * 1.5 * dpr;
+    } else if (p.type === 'halo') {
+      p.theta += rotSpeed * 0.5;
+    } else if (p.type === 'ejecta') {
+      p.life -= 0.0008;
+      if (p.life <= 0) {
+        p.r = 30 * dpr + Math.random() * 40 * dpr;
+        p.theta = Math.random() * Math.PI * 2;
+        p.life = 1;
+      } else {
+        p.r += p.vR;
+        p.theta += p.vTheta;
+      }
+    }
+
+    // 鼠标磁场（轻推 · 不抢视觉）
+    if (mouse.active) {
+      const x = p.cx + p.r * Math.cos(p.theta);
+      const y = p.cy + p.r * Math.sin(p.theta);
+      const dx = x - mouse.x;
+      const dy = y - mouse.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < 80 * dpr && dist > 1) {
+        const force = (80 * dpr - dist) / (80 * dpr);
+        // 推离鼠标
+        p.theta -= 0.008 * force * (dy > 0 ? 1 : -1);
+      }
     }
   }
-
-  // Fallback：主线程直接渲染（性能较弱但兼容）
-  fallbackParticles = initFallbackParticles(canvasW, canvasH);
-  lastFrameTime = performance.now();
-  rafId = requestAnimationFrame(mainLoop);
 }
 
-function mainLoop(now) {
-  const dt = Math.min(now - lastFrameTime, 50);
-  lastFrameTime = now;
+function renderFrame(t) {
+  if (!ctx) return;
 
-  // 鼠标插值（让移动更顺滑）
-  mouse.x += (mouseTarget.x - mouse.x) * 0.15;
-  mouse.y += (mouseTarget.y - mouse.y) * 0.15;
+  // 1. 清屏 · 微蓝调背景
+  ctx.fillStyle = '#000308';
+  ctx.fillRect(0, 0, width, height);
 
-  if (worker && workerReady) {
-    // OffscreenCanvas 路径：worker 自己画
-    worker.postMessage({
-      type: 'update',
-      dt,
-      mouse: mouse.active ? { x: mouse.x, y: mouse.y } : null,
-      width: canvasW,
-      height: canvasH,
-    });
-  } else {
-    // Fallback：主线程画
-    renderFallback(now);
+  // 2. 加色混合（让粒子叠加发光）
+  ctx.globalCompositeOperation = 'lighter';
+
+  for (let i = 0; i < particles.length; i++) {
+    const p = particles[i];
+    const x = p.cx + p.r * Math.cos(p.theta);
+    const y = p.cy + p.r * Math.sin(p.theta);
+
+    let alpha = p.opacity;
+    if (p.type === 'ejecta') alpha = p.life * 0.7;
+
+    ctx.fillStyle = p.color;
+    ctx.globalAlpha = alpha;
+    ctx.beginPath();
+    ctx.arc(x, y, p.size, 0, Math.PI * 2);
+    ctx.fill();
   }
 
-  rafId = requestAnimationFrame(mainLoop);
-}
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = 'source-over';
 
-// === Fallback：主线程直接画（OffscreenCanvas 不支持时）===
-function initFallbackParticles(w, h) {
-  // 复用 worker 的粒子生成逻辑（简化版）
-  // 实际生产中应抽到共享模块
-  return null;  // 暂时显示静态
-}
-
-function renderFallback(now) {
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return;
-
-  // 简单占位：静态径向渐变
-  ctx.fillStyle = '#000308';
-  ctx.fillRect(0, 0, canvasW, canvasH);
-
-  const cx = canvasW * 0.6;
-  const cy = canvasH * 0.55;
-  const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.min(canvasW, canvasH) * 0.5);
-  grad.addColorStop(0, 'rgba(165, 243, 252, 0.15)');
-  grad.addColorStop(0.3, 'rgba(59, 130, 246, 0.1)');
-  grad.addColorStop(0.7, 'rgba(30, 27, 75, 0.05)');
-  grad.addColorStop(1, 'rgba(0, 3, 8, 0)');
+  // 3. 微弱 vignette（让边缘自然衰减）
+  const grad = ctx.createRadialGradient(
+    width * 0.7, height * 0.5, Math.min(width, height) * 0.2,
+    width * 0.7, height * 0.5, Math.min(width, height) * 0.8
+  );
+  grad.addColorStop(0, 'rgba(0, 0, 0, 0)');
+  grad.addColorStop(1, 'rgba(0, 0, 0, 0.4)');
   ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, canvasW, canvasH);
+  ctx.fillRect(0, 0, width, height);
 }
 
-// === Reduced-motion 静态帧 ===
-function renderStaticFrame() {
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return;
-
-  ctx.fillStyle = '#000308';
-  ctx.fillRect(0, 0, canvasW, canvasH);
-
-  const cx = canvasW * 0.6;
-  const cy = canvasH * 0.55;
-  const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.min(canvasW, canvasH) * 0.5);
-  grad.addColorStop(0, 'rgba(165, 243, 252, 0.2)');
-  grad.addColorStop(0.4, 'rgba(59, 130, 246, 0.12)');
-  grad.addColorStop(1, 'rgba(0, 3, 8, 0)');
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, canvasW, canvasH);
-}
-
-// === 清理（页面切换时）===
 export function destroyGalaxyScene() {
   if (rafId !== null) cancelAnimationFrame(rafId);
-  if (worker) worker.terminate();
+  rafId = null;
   window.removeEventListener('resize', () => {});
 }

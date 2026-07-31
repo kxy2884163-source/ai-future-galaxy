@@ -848,7 +848,7 @@ img { max-width: 100%; display: block; }
   min-height: 100vh;
   min-height: 100dvh;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 4fr) minmax(0, 6fr);
   align-items: center;
   padding: calc(var(--header-h) + var(--space-7)) var(--space-5) var(--space-7);
   overflow: hidden;
@@ -862,11 +862,11 @@ img { max-width: 100%; display: block; }
   pointer-events: auto;
 }
 
-/* §99.3 文字块（偏左 · 8-10% 边距） */
+/* §99.3 文字块（偏左 · 40% 宽度 · 不要限 max-width 让 grid 决定） */
 .hero-v3 .text-block {
-  padding-left: max(var(--space-5), 8vw);
+  padding-left: max(var(--space-5), 6vw);
   padding-right: var(--space-4);
-  max-width: 600px;
+  min-width: 0;  /* 让 grid 内部允许收缩 */
 }
 
 .hero-v3 .hero-eyebrow {
