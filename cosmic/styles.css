@@ -6,15 +6,25 @@
 
 /* §1 设计 Token（CSS Variables） */
 :root {
-  --bg-0: #0a0a1a;
+  /* Galaxy v3 · 2026-08-01 · Blueyard 化：背景从纯黑改微蓝调避免 OLED 死黑 */
+  --bg-0: #000308;
   --bg-1: #161630;
   --bg-2: #1f1f3d;
 
-  --fg: #e8e9f3;
-  --fg-mute: #9ea4c4;
+  --fg: #ffffff;
+  --fg-mute: #9ca3af;
   --fg-dim: #8b91b3;  /* P2 实测：原本 #6b7099 对比度仅 4.1:1 不过 AA · 调到 #8b91b3 ≈ 6.15:1 过 AA · 兼顺“dim”感受 */
 
-  --accent: #7df9ff;
+  /* Galaxy v3 · 新配色（仿 Blueyard · cyan 主导 + magenta 散点） */
+  --accent: #00e5ff;       /* cyan 主色 · 原 #7df9ff 偏冷 */
+  --accent-cyan: #00e5ff;
+  --accent-cyan-soft: #22d3ee;
+  --accent-blue: #3b82f6;
+  --accent-indigo: #1e1b4b;
+  --accent-magenta: #ec4899;
+  --accent-violet: #a855f7;
+
+  /* 旧 accent 保留兼容（不被新页面用 · 防止老代码爆炸） */
   --accent-2: #b388ff;
   --accent-3: #ff6b9d;
   --warn: #ffc857;
@@ -37,6 +47,15 @@
 
   --font: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
     "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+  /* Galaxy v3 · 字体升级 Geometric Sans（仿 Suisse Int'l / Inter Display） */
+  --font-display: "Inter Display", "Inter", -apple-system, BlinkMacSystemFont,
+    "Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  /* Galaxy v3 · 字距变量 */
+  --tracking-tight: -0.02em;
+  --tracking-normal: 0em;
+  --tracking-wide: 0.05em;
+  --tracking-wider: 0.1em;
+  --tracking-widest: 0.25em;
 
   --space-1: 4px;
   --space-2: 8px;
@@ -815,5 +834,232 @@ img { max-width: 100%; display: block; }
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* ==========================================================
+   §99 Galaxy v3 · Blueyard 化 Hero 样式（2026-08-01）
+   架构：单屏 Hero · 文字偏左 30% · 漩涡偏右 70% · 大块留白
+   ========================================================== */
+
+/* §99.1 Hero 全屏布局 */
+.hero-v3 {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  padding: calc(var(--header-h) + var(--space-7)) var(--space-5) var(--space-7);
+  overflow: hidden;
+}
+
+/* §99.2 漩涡 canvas 全屏背景 */
+.hero-v3 .canvas-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: auto;
+}
+
+/* §99.3 文字块（偏左 · 8-10% 边距） */
+.hero-v3 .text-block {
+  padding-left: max(var(--space-5), 8vw);
+  padding-right: var(--space-4);
+  max-width: 600px;
+}
+
+.hero-v3 .hero-eyebrow {
+  font-family: var(--font-display);
+  font-size: clamp(11px, 1.1vw, 13px);
+  font-weight: 500;
+  letter-spacing: var(--tracking-widest);
+  text-transform: uppercase;
+  color: var(--fg-mute);
+  margin-bottom: var(--space-5);
+  opacity: 0.85;
+}
+
+.hero-v3 .hero-title {
+  font-family: var(--font-display);
+  font-size: clamp(48px, 8vw, 96px);
+  font-weight: 400;
+  line-height: 0.95;
+  letter-spacing: var(--tracking-tight);
+  color: var(--fg);
+  margin-bottom: var(--space-5);
+  /* 避免中文行宽被强制切断 */
+  word-break: keep-all;
+}
+
+.hero-v3 .hero-title .char {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: v3-rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes v3-rise {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.hero-v3 .hero-subtitle {
+  font-family: var(--font-display);
+  font-size: clamp(13px, 1.2vw, 14px);
+  font-weight: 500;
+  letter-spacing: var(--tracking-wider);
+  text-transform: uppercase;
+  color: var(--fg-mute);
+  margin-bottom: var(--space-6);
+  opacity: 0;
+  animation: v3-fade-in 1.2s ease 1s forwards;
+}
+
+.hero-v3 .hero-desc {
+  font-size: clamp(13px, 1.1vw, 14px);
+  line-height: 1.7;
+  color: var(--fg-mute);
+  max-width: 440px;
+  margin-bottom: var(--space-7);
+  opacity: 0;
+  animation: v3-fade-in 1.2s ease 1.3s forwards;
+}
+
+.hero-v3 .hero-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--fg-mute);
+  font-family: var(--font-display);
+  font-size: clamp(11px, 1.1vw, 13px);
+  font-weight: 500;
+  letter-spacing: var(--tracking-widest);
+  text-transform: uppercase;
+  text-decoration: none;
+  padding: var(--space-3) 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  opacity: 0;
+  animation: v3-fade-in 1.2s ease 1.6s forwards;
+  transition: color 0.3s ease, gap 0.3s ease;
+}
+
+.hero-v3 .hero-cta:hover {
+  color: var(--fg);
+  gap: var(--space-4);
+}
+
+.hero-v3 .hero-cta .indicator {
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.hero-v3 .hero-cta .indicator::after {
+  content: '';
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: 4px;
+  height: 4px;
+  background: currentColor;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: v3-pulse 2.5s ease-in-out infinite;
+}
+
+@keyframes v3-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+@keyframes v3-fade-in {
+  to { opacity: 1; }
+}
+
+/* §99.4 右侧漩涡区（占位 · canvas 渲染） */
+.hero-v3 .galaxy-area {
+  position: relative;
+  height: 100%;
+  min-height: 70vh;
+  pointer-events: none;
+}
+
+/* §99.5 4 模块入口（首屏下 · compact 卡片） */
+.modules-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-4);
+  padding: var(--space-7) var(--space-5);
+  max-width: var(--max-w);
+  margin: 0 auto;
+}
+
+.module-card-mini {
+  padding: var(--space-5);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius);
+  text-decoration: none;
+  color: var(--fg);
+  transition: all 0.3s ease;
+  backdrop-filter: blur(12px);
+}
+
+.module-card-mini:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--accent-cyan);
+  transform: translateY(-3px);
+}
+
+.module-card-mini .icon {
+  font-size: 24px;
+  margin-bottom: var(--space-2);
+  display: block;
+}
+
+.module-card-mini h3 {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: var(--tracking-wide);
+  margin-bottom: var(--space-1);
+}
+
+.module-card-mini p {
+  font-size: 12px;
+  color: var(--fg-dim);
+}
+
+/* §99.6 响应式 */
+@media (max-width: 980px) {
+  .hero-v3 {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto;
+    text-align: left;
+    padding-top: calc(var(--header-h) + var(--space-6));
+  }
+  .hero-v3 .text-block {
+    padding-left: var(--space-5);
+    padding-right: var(--space-5);
+    max-width: 100%;
+  }
+  .hero-v3 .galaxy-area {
+    min-height: 40vh;
+    order: -1;
+    margin-bottom: var(--space-6);
+  }
+  .modules-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .modules-row {
+    grid-template-columns: 1fr;
   }
 }

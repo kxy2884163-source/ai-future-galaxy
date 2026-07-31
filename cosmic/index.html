@@ -363,9 +363,7 @@
 </head>
 <body>
   <a href="#main-content" class="skip-link">跳到主内容</a>
-  <div class="canvas-bg" aria-hidden="true">
-    <canvas id="cosmic-canvas"></canvas>
-  </div>
+  <!-- Galaxy v3 · 砍掉 page 级 canvas-bg，由 hero-v3 .galaxy-area 内部 canvas 取代 -->
 
   <header class="site-header">
     <a href="./index.html" class="brand" aria-label="AI 未来星域社区">
@@ -382,97 +380,51 @@
 
   <main id="main-content">
 
-    <!-- § 第一屏 · Galaxy Hero -->
-    <section class="galaxy-hero">
-      <div class="layer">
-        <span class="badge">✦ WELCOME TO THE GALAXY ✦</span>
-        <h1>AI 未来星域社区</h1>
-        <p class="sub">
-          让孤独学习变成一起玩着学 · 把<span class="accent">信息爆炸</span>压成打开就能用
+    <!-- § 第一屏 · Galaxy v3 单屏 Hero（仿 Blueyard · 2026-08-01） -->
+    <section class="hero-v3">
+      <div class="text-block">
+        <p class="hero-eyebrow">AI 爱好者的成长宇宙</p>
+        <h1 class="hero-title">
+          <span class="char" style="animation-delay: 0.05s">A</span><span class="char" style="animation-delay: 0.10s">I</span><span class="char" style="animation-delay: 0.15s">　</span><span class="char" style="animation-delay: 0.20s">未</span><span class="char" style="animation-delay: 0.25s">来</span><span class="char" style="animation-delay: 0.30s">　</span><span class="char" style="animation-delay: 0.35s">星</span><span class="char" style="animation-delay: 0.40s">域</span>
+        </h1>
+        <p class="hero-subtitle">让孤独学习变成一起玩着学</p>
+        <p class="hero-desc">
+          一个为 AI 爱好者打造的一站式成长宇宙。知识分享、插件工具、AI 在线使用、找同好——打开就能用，无需部署。
         </p>
-
-        <div class="float-tags">
-          <a class="float-tag" href="./dashboard.html"><span class="icon">🌟</span>社交页面 <span class="count">· 找同好</span></a>
-          <a class="float-tag" href="./resource.html"><span class="icon">📚</span>AI 知识分享 <span class="count">· 教程/案例</span></a>
-          <a class="float-tag" href="./tools.html"><span class="icon">🛠️</span>插件工具 <span class="count">· 一键直跳</span></a>
-          <a class="float-tag" href="./upload.html"><span class="icon">🤖</span>AI 在线 <span class="count">· 免安装</span></a>
-          <a class="float-tag" href="./search.html"><span class="icon">🔍</span>搜索</a>
-          <a class="float-tag" href="./me.html"><span class="icon">👥</span>关注</a>
-          <a class="float-tag" href="./favorites.html"><span class="icon">★</span>收藏</a>
-          <a class="float-tag" href="./notifications.html"><span class="icon">🔔</span>通知</a>
-          <a class="float-tag" href="./drafts.html"><span class="icon">📝</span>草稿</a>
-          <a class="float-tag" href="./settings.html"><span class="icon">⚙️</span>设置</a>
-        </div>
-
-        <div class="hero-cta">
-          <a href="./register.html" class="btn-hero-primary">立即注册</a>
-          <a href="./resource.html" class="btn-hero-ghost">浏览资源 →</a>
-        </div>
+        <a href="#modules" class="hero-cta">
+          开始探索
+          <span class="indicator" aria-hidden="true"></span>
+        </a>
       </div>
-
-      <p class="hint-scroll">↓ 向 下 滚 动 ↓</p>
-    </section>
-
-    <!-- § 第二屏 · 数字滚动 -->
-    <section class="stats-section">
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-number" data-count="1280">0</div>
-          <div class="stat-label">资源数量</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-number" data-count="642">0</div>
-          <div class="stat-label">活跃社区</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-number" data-count="18">0</div>
-          <div class="stat-label">精选工具</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-number" data-count="9260">0</div>
-          <div class="stat-label">学习访问</div>
-        </div>
+      <div class="galaxy-area" aria-hidden="true">
+        <canvas id="galaxy-canvas"></canvas>
       </div>
     </section>
 
-    <!-- § 第三屏 · 4 大模块详细介绍 -->
-    <section class="features-section">
-      <header class="features-head">
-        <h2>4 大核心模块</h2>
-        <p class="lead">每一个模块都解决 AI 爱好者路上的一个核心痛点</p>
-      </header>
-
-      <div class="features-grid">
-        <div class="feature-card">
-          <div class="glow"></div>
-          <div class="icon">🌟</div>
-          <h3>社交页面</h3>
-          <p>找同好 · 组圈子 · 评论交流 · 私信互动 · 一个人研究 AI 太枯燥 · 找到志同道合的人</p>
-          <a href="./dashboard.html">进入社区 →</a>
-        </div>
-        <div class="feature-card">
-          <div class="glow"></div>
-          <div class="icon">📚</div>
-          <h3>AI 知识分享</h3>
-          <p>结构化资源中心 · 教程 · 案例 · 模型 · 工具 · 数据集 · 灵感 · 解决知识获取困难</p>
-          <a href="./resource.html">浏览资源 →</a>
-        </div>
-        <div class="feature-card">
-          <div class="glow"></div>
-          <div class="icon">🛠️</div>
-          <h3>常用插件工具</h3>
-          <p>收敛碎片 AI 工具到一个入口 · 一键直跳 · 收藏常用 · 解决信息源过于复杂</p>
-          <a href="./tools.html">查看工具 →</a>
-        </div>
-        <div class="feature-card">
-          <div class="glow"></div>
-          <div class="icon">🤖</div>
-          <h3>AI 在线使用</h3>
-          <p>打开就能用 · 免安装免部署 · 任务模板 + 多模型选择 · 一站式 AI 体验</p>
-          <a href="./upload.html">开始使用 →</a>
-        </div>
-      </div>
+    <!-- § 第二屏 · 4 大模块 compact 入口 -->
+    <section class="modules-row" id="modules">
+      <a class="module-card-mini" href="./dashboard.html">
+        <span class="icon" aria-hidden="true">🌟</span>
+        <h3>社交页面</h3>
+        <p>找同好 · 评论 · 私信</p>
+      </a>
+      <a class="module-card-mini" href="./resource.html">
+        <span class="icon" aria-hidden="true">📚</span>
+        <h3>AI 知识分享</h3>
+        <p>教程 · 案例 · 模型 · 数据集</p>
+      </a>
+      <a class="module-card-mini" href="./tools.html">
+        <span class="icon" aria-hidden="true">🛠️</span>
+        <h3>插件工具</h3>
+        <p>18 个精选工具 · 6 分类</p>
+      </a>
+      <a class="module-card-mini" href="./upload.html">
+        <span class="icon" aria-hidden="true">🤖</span>
+        <h3>AI 在线使用</h3>
+        <p>免安装 · 6 任务模板</p>
+      </a>
     </section>
+
 
     <!-- § 第四屏 · 宇宙感 footer -->
     <footer class="cosmic-footer">
@@ -493,35 +445,6 @@
 
   <script type="module" src="app.js"></script>
   <script type="module" src="galaxy-scene.js"></script>
-  <script type="module" src="counter.js"></script>
-  <script type="module">
-    // § Hero 标题字符 stagger（fallback）
-    import { animate, stagger } from 'https://cdn.jsdelivr.net/npm/animejs@4.0.0/dist/animejs.esm.min.js';
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (!reduce) {
-      const h1 = document.querySelector('.galaxy-hero h1');
-      if (h1) {
-        const text = h1.textContent;
-        h1.innerHTML = '';
-        [...text].forEach((ch) => {
-          const s = document.createElement('span');
-          s.className = 'char';
-          s.textContent = ch === ' ' ? '\u00A0' : ch;
-          s.style.display = 'inline-block';
-          s.style.opacity = '0';
-          s.style.transform = 'translateY(30px)';
-          h1.appendChild(s);
-        });
-        animate('.galaxy-hero h1 .char', {
-          opacity: [0, 1],
-          translateY: [30, 0],
-          scale: [0.9, 1],
-          duration: 800,
-          delay: stagger(60),
-          ease: 'outCubic',
-        });
-      }
-    }
-  </script>
+  <!-- Galaxy v3 · counter.js (数字滚动) 已删 · hero 是单屏不需要 -->
 </body>
 </html>
