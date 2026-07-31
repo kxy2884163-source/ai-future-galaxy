@@ -882,12 +882,12 @@ img { max-width: 100%; display: block; }
 
 .hero-v3 .hero-title {
   font-family: var(--font-display);
-  font-size: clamp(48px, 8vw, 96px);
-  font-weight: 400;
-  line-height: 0.95;
+  font-size: clamp(64px, 11vw, 156px);
+  font-weight: 500;
+  line-height: 0.92;
   letter-spacing: var(--tracking-tight);
   color: var(--fg);
-  margin-bottom: var(--space-5);
+  margin-bottom: var(--space-6);
   /* 避免中文行宽被强制切断 */
   word-break: keep-all;
 }

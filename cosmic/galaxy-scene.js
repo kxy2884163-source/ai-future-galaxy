@@ -278,3 +278,14 @@ export function destroyGalaxyScene() {
   rafId = null;
   window.removeEventListener('resize', () => {});
 }
+
+// === 自启动 · 找不到 canvas 则静默退出 ===
+// 拍板：2026-08-01 Codex 诊断 P0 #1 · canvas 不被任何模块调用
+const _autoCanvas = document.getElementById('galaxy-canvas');
+if (_autoCanvas) {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => initGalaxyScene(_autoCanvas), { once: true });
+  } else {
+    initGalaxyScene(_autoCanvas);
+  }
+}
